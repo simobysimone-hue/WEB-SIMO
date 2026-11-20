@@ -228,6 +228,22 @@ h1,h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spac
     });
   });
 })();
+
+/* Textos legales: al cerrar, la página se queda donde estaba (no sube arriba del todo). */
+(function(){
+  function cerrarLegal(){
+    var y = window.scrollY;
+    location.hash = '';
+    window.scrollTo(0, y);
+    try { history.replaceState(null, '', location.pathname + location.search); } catch(e) {}
+  }
+  document.querySelectorAll('.legal .legal-x').forEach(function(x){
+    x.addEventListener('click', function(e){ e.preventDefault(); cerrarLegal(); });
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && document.querySelector('.legal:target')) cerrarLegal();
+  });
+})();
 </script>
 </body>
 </html>
