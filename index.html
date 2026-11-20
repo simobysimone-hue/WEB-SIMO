@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIMO · Bolsos hechos a mano con carácter</title>
+<meta name="description" content="SIMO: bolsos hechos a mano por encargo y talleres creativos en Madrid.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F5F3;color:#111;font-family:Poppins,system-ui,sans-serif;font-size:17px;line-height:1.6}
+a{color:inherit;text-decoration:none}
+.btn,.card,.ph,article,.strip-item{border-radius:6px}
+a:hover{opacity:.7}
+h1,h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing:.5px;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.btn{display:inline-block;padding:14px 26px;background:#111;color:#F6F5F3;text-decoration:none;font-weight:600}
+.btn:hover{background:#5E1727;color:#fff;text-decoration:none}
+.btn-line{background:transparent;color:#111;border:2px solid #111}
+.btn-line:hover{background:#111;color:#F6F5F3}
+.ph{background:#D9D6D0;display:flex;align-items:center;justify-content:center;text-align:center;color:#3d3d3d;font-size:14px;padding:12px}
+.tag{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#5E1727;font-weight:600;margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.strip{overflow:hidden;width:100%}
+.strip-track{display:flex;width:max-content;animation:marquee 60s linear infinite;will-change:transform}
+.strip-item{width:280px;height:350px;margin-right:24px;flex:0 0 auto;object-fit:cover;display:block}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tick{overflow:hidden;white-space:nowrap}
+.tick-track{display:flex;width:max-content;animation:marquee 40s linear infinite}
+@media (prefers-reduced-motion:reduce){.strip-track{animation:none}}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}h1{font-size:44px!important}}
+.legal{display:none;position:fixed;inset:0;z-index:1000000;background:rgba(11,11,12,.7);align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+.legal:target{display:flex}
+.legal-box{background:#F6F5F3;color:#111;width:100%;max-width:704px;max-height:88vh;overflow:auto;padding:28px;border-radius:6px;font-family:Poppins,system-ui,sans-serif;font-size:15px;line-height:1.6;box-sizing:border-box}
+.legal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid #ccc;padding-bottom:16px;margin-bottom:20px}
+.legal-head h2{font-size:26px}
+.legal-x{font-size:32px;line-height:1;color:#111;text-decoration:none}
+.legal h3{font-family:Poppins,system-ui,sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:20px 0 8px}
+.legal p{margin:0 0 10px;font-size:14px}
+.bolsos-box{max-width:880px}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.steps span{font-size:11px;text-transform:uppercase;letter-spacing:1px;border:1px solid #111;border-radius:6px;padding:6px 10px}
+.steps span.on{background:#111;color:#F6F5F3}
+.bolsos-box h3{margin:22px 0 10px}
+.grid{display:grid;gap:12px}
+.card{border:1px solid #111;border-radius:6px;padding:14px;background:#fff;display:flex;flex-direction:column;gap:4px}
+.card.big{padding:18px}
+.card b{font-size:15px}
+.card span{font-size:15px;font-weight:600}
+.card small{font-size:12px;color:#555}
+.bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;border-top:1px solid #ccc;margin-top:22px;padding-top:16px}
+.bar .line{margin:0 0 4px;font-size:15px}
+.bar .small{margin:0;font-size:12px;color:#555}
+.btns{display:flex;gap:10px}
+.btns button{height:44px;padding:0 20px;border:2px solid #111;border-radius:6px;background:#111;color:#F6F5F3;font:600 12px Poppins,system-ui,sans-serif;text-transform:uppercase;letter-spacing:1px}
+.btns button:disabled{background:transparent;color:#999;border-color:#999}
+.win-bar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#F6F5F3;margin:-28px -28px 18px;padding:12px 28px;border-bottom:1px solid #E2DED6}
+.win-bar nav{display:flex;gap:22px;font-family:Caveat,cursive;font-size:24px;line-height:1}
+.win-bar nav a{color:#0B0B0C;text-decoration:none}
+.win-bar img{height:40px;width:auto;display:block}
+.bolsos-box{max-width:1000px}
+.hero{position:relative;overflow:hidden;min-height:340px;display:flex;align-items:center;justify-content:center;text-align:center;margin:0 -28px;padding:48px 28px;color:#0B0B0C}
+.hero-bg{position:absolute;top:-16px;left:-16px;width:calc(100% + 32px);height:calc(100% + 32px);object-fit:cover;filter:blur(3px)}
+.hero-shade{position:absolute;inset:0;background:rgba(246,245,243,.25)}
+.hero-in{position:relative;max-width:640px}
+.hero h2{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:64px;letter-spacing:.5px;color:#5E1727;line-height:1}
+.hero p{margin:14px 0 0;font-size:15px}
+.sec{margin-top:30px}
+.sec .tag{margin:0}
+.sec h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:28px;letter-spacing:.5px;margin:6px 0 12px}
+.sec h4{font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px}
+.sec .note{font-size:13px;color:#555;margin:8px 0 0}
+.grid{display:grid;gap:12px}
+.card{border:1px solid #111;border-radius:6px;padding:14px;background:#fff;display:flex;flex-direction:column;gap:4px}
+.card b{font-size:15px}
+.card span{font-size:15px;font-weight:600}
+.card small{font-size:12px;color:#555}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid #111;border-radius:6px;padding:7px 10px;font-size:13px;background:#fff}
+.chip i{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid #888}
+.sketch{border:2px dashed #888;border-radius:6px;height:220px;display:flex;align-items:center;justify-content:center;text-align:center;color:#555;font-size:14px;padding:16px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form label{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.form input{border:1px solid #111;border-radius:6px;padding:10px;font:14px Poppins,system-ui,sans-serif;background:#fff}
+.form .full{grid-column:1/-1}
+.pay{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid #ccc;padding-top:16px}
+.pay button{height:52px;padding:0 26px;border:2px solid #111;border-radius:6px;background:#111;color:#F6F5F3;font:600 13px Poppins,system-ui,sans-serif;text-transform:uppercase;letter-spacing:1px}
+.legal-full{padding:0;align-items:stretch;justify-content:stretch}
+.legal-full .legal-box{max-width:none;width:100%;max-height:none;height:100%;border-radius:0;padding:0 28px 28px;box-sizing:border-box}
+.legal-full .win-bar{margin:0 -28px 18px;padding:14px 28px;top:0}
+.legal-full .win-bar .legal-x{margin-left:auto}
+#cookie-banner{transition:opacity .2s}
+.legal .legal-box{padding-top:0}
+.legal .legal-head{position:sticky;top:0;z-index:5;background:#F6F5F3;padding-top:28px;margin-bottom:20px}
+</style>
+</head>
+<body>
+
+
+
+<div style="width:100%">
+
+<header style="position:sticky;top:0;z-index:10;background:#F6F5F3;color:#0B0B0C;border-bottom:1px solid #E2DED6">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 24px;box-sizing:border-box">
+<a href="#inicio" aria-label="SIMO, inicio"><img src="brand/logo-negro.png" alt="SIMO" style="height:44px;width:auto;display:block"></a>
+<nav style="display:flex;gap:28px;flex-wrap:wrap;font-family:Caveat,cursive;font-size:28px;line-height:1">
+<a href="bolsos.html" target="_blank" rel="noopener">Bolsos</a>
+<a href="/talleres">Talleres</a>
+<a href="#contacto">Contacto</a>
+</nav>
+</div>
+</header>
+
+<section id="inicio" style="position:relative;overflow:hidden;min-height:620px;display:flex;align-items:center;justify-content:center">
+<img src="img/portada-fondo.png" alt="" aria-hidden="true" style="position:absolute;top:-24px;left:-24px;width:calc(100% + 48px);height:calc(100% + 48px);object-fit:cover;filter:blur(3px)">
+<div style="position:absolute;inset:0;background:rgba(246,245,243,0.25)"></div>
+<div style="position:relative;width:100%;max-width:1120px;margin:0 auto;padding:72px 24px;box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;text-align:left">
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">SIMO, marca de bolsos hechos a mano</h1>
+<img src="brand/logo-negro.png" alt="SIMO" style="width:min(420px,80vw);height:auto;display:block">
+<div style="display:flex;gap:14px;margin-top:40px;flex-wrap:wrap;justify-content:flex-start">
+<a class="btn" href="bolsos.html" target="_blank" rel="noopener">Bolsos</a>
+<a class="btn btn-line" href="/talleres">Talleres</a>
+</div>
+</div>
+<p style="position:absolute;right:32px;bottom:28px;margin:0;max-width:360px;text-align:right;font-family:Caveat,cursive;font-size:40px;line-height:1.1">A little different, just like you.</p>
+</section>
+
+<section id="sobre" style="padding:0 0 48px;overflow:hidden">
+<div class="wrap" style="position:relative;overflow:hidden;height:300px;margin-top:16px">
+<p style="position:absolute;z-index:1;left:0;right:0;top:50%;transform:translateY(-50%);margin:0 auto;max-width:820px;padding:0 24px;font-family:Impact,'Arial Black',sans-serif;font-size:44px;line-height:1.15;letter-spacing:.5px;color:#5E1727;text-align:center">SIMO nace para que todas podamos expresar quiénes somos y quién queremos ser.</p>
+</div>
+
+<div class="strip" style="margin-top:24px">
+<div class="strip-track">
+<img class="strip-item" src="img/look-07.jpg" alt="Look completo con bolso SIMO, con la cara de la modelo visible">
+<img class="strip-item" src="img/look-02.jpg" alt="Detalle del look y del bolso SIMO, sin cara">
+<img class="strip-item" src="img/look-08.jpg" alt="Look completo con bolso SIMO, con la cara de la modelo visible">
+<img class="strip-item" src="img/look-03.jpg" alt="Detalle del look y del bolso SIMO, sin cara">
+<img class="strip-item" src="img/look-09.jpg" alt="Look completo con bolso SIMO, con la cara de la modelo visible">
+<img class="strip-item" src="img/look-04.jpg" alt="Detalle del look y del bolso SIMO, sin cara">
+<img class="strip-item" src="img/look-10.jpg" alt="Look completo con bolso SIMO, con la cara de la modelo visible">
+<img class="strip-item" src="img/look-05.jpg" alt="Detalle del look y del bolso SIMO, sin cara">
+<img class="strip-item" src="img/look-12.jpg" alt="Look completo con bolso SIMO, con la cara de la modelo visible">
+<img class="strip-item" src="img/look-06.jpg" alt="Detalle del look y del bolso SIMO, sin cara">
+<img class="strip-item" src="img/look-07.jpg" alt="" aria-hidden="true">
+<img class="strip-item" src="img/look-02.jpg" alt="" aria-hidden="true">
+<img class="strip-item" src="img/look-08.jpg" alt="" aria-hidden="true">
+<img class="strip-item" src="img/look-03.jpg" alt="" aria-hidden="true">
+<img class="strip-item" src="img/look-09.jpg" alt="" aria-hidden="true">
+<img class="strip-item" src="img/look-04.jpg" alt="" aria-hidden="true">
+<img class="strip-item" src="img/look-10.jpg" alt="" aria-hidden="true">
+<img class="strip-item" src="img/look-05.jpg" alt="" aria-hidden="true">
+<img class="strip-item" src="img/look-12.jpg" alt="" aria-hidden="true">
+<img class="strip-item" src="img/look-06.jpg" alt="" aria-hidden="true">
+</div>
+</div>
+</section>
+
+<section id="contacto" style="background:#0B0B0C;color:#F6F5F3;overflow:hidden;padding-bottom:0">
+<div style="display:flex;justify-content:center;align-items:flex-start;gap:96px;flex-wrap:wrap;padding:28px 24px 0">
+<img src="brand/logo-negro.png" alt="SIMO" style="display:block;height:260px;width:auto;max-width:520px;filter:invert(1) hue-rotate(180deg);opacity:.85">
+<div style="display:flex;flex-direction:column;align-items:flex-start;width:300px">
+<a href="mailto:simobysimone@gmail.com" style="font-family:Poppins,system-ui,sans-serif;font-weight:600;font-size:28px;letter-spacing:1px;text-transform:uppercase">Contactanos</a>
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:22px;margin-top:28px;font-size:18px;letter-spacing:.5px">
+<a href="mailto:simobysimone@gmail.com" style="display:flex;align-items:center;gap:12px;color:#F6F5F3">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F6F5F3" stroke-width="1.8" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+<span>simobysimone@gmail.com</span>
+</a>
+<a href="tel:+34681178228" style="display:flex;align-items:center;gap:12px;color:#F6F5F3">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F6F5F3" stroke-width="1.8" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+<span>+34 681 17 82 28</span>
+</a>
+<a href="https://www.instagram.com/simo.bysimone/" style="display:flex;align-items:center;gap:12px;color:#F6F5F3">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F6F5F3" stroke-width="1.8" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#F6F5F3"/></svg>
+<span>@simo.bysimone</span>
+</a>
+<a href="https://www.tiktok.com/@simo.bysimone" style="display:flex;align-items:center;gap:12px;color:#F6F5F3">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F6F5F3" stroke-width="1.8" aria-hidden="true"><path d="M9 3v12.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M9 3c.5 3 2.5 5 6 5"/></svg>
+<span>@simo.bysimone</span>
+</a>
+</div>
+</div>
+</div>
+<nav style="display:flex;justify-content:center;gap:30px;flex-wrap:wrap;margin-top:56px;padding:0 24px;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#BDBDBD">
+<a href="#aviso-legal">Aviso legal</a>
+<a href="#privacidad">Privacidad</a>
+<a href="#condiciones">Condiciones de compra</a>
+<a href="#cookies">Cookies</a>
+<span>Preferencias de cookies</span>
+</nav>
+<div class="tick" style="margin-top:56px;padding:18px 0;border-top:1px solid #222">
+<div class="tick-track">
+<span style="display:inline-flex;gap:48px;padding-right:48px;font-family:Impact,'Arial Black',sans-serif;font-size:34px;letter-spacing:1px">
+<span>SIMO MADE TO BE YOURS</span><span>—</span><span>SIMO MADE TO BE YOURS</span><span>—</span><span>SIMO MADE TO BE YOURS</span><span>—</span><span>SIMO MADE TO BE YOURS</span><span>—</span>
+</span>
+<span style="display:inline-flex;gap:48px;padding-right:48px;font-family:Impact,'Arial Black',sans-serif;font-size:34px;letter-spacing:1px">
+<span>SIMO MADE TO BE YOURS</span><span>—</span><span>SIMO MADE TO BE YOURS</span><span>—</span><span>SIMO MADE TO BE YOURS</span><span>—</span><span>SIMO MADE TO BE YOURS</span><span>—</span>
+</span>
+</div>
+</div>
+</section>
+
+<p style="background:#0B0B0C;color:#BDBDBD;font-size:13px;margin:0;padding:0 24px 24px;text-align:center">Asociación Junior Empresa UNIVA (NIF G75280909) y Asociación Junior Empresa HAKKA (NIF G23921455) · Plaza San Martín 1, 28013 Madrid</p>
+
+<div id="aviso-legal" class="legal" role="dialog" aria-modal="true" aria-labelledby="aviso-legal-t"><div class="legal-box"><div class="legal-head"><h2 id="aviso-legal-t">Aviso legal y condiciones de uso</h2><a href="#" class="legal-x" aria-label="Cerrar">×</a></div><section><h3>I. Información general</h3><p>En cumplimiento con el deber de información dispuesto en la Ley 34/2002 de Servicios de la Sociedad de la Información y el Comercio Electrónico (LSSI-CE) de 11 de julio, se facilitan a continuación los siguientes datos de información general de este sitio web:</p><p>La titularidad de este sitio web la ostentan conjuntamente Asociación Junior Empresa UNIVA y Asociación Junior Empresa HAKKA, con NIF G75280909 (UNIVA) y G23921455 (HAKKA). Registro: Registro de Asociaciones de la Comunidad de Madrid: número 41475 (UNIVA) y sección primera, número 41.841 (HAKKA). Sus datos de contacto son:</p><p>— Dirección: Plaza San Martín 1, 28013 Madrid, España</p><p>— Email de contacto: simobysimone@gmail.com</p></section><section><h3>II. Términos y condiciones generales de uso</h3><p>El objeto de las condiciones. Las presentes Condiciones Generales de Uso (en adelante, Condiciones) regulan el acceso y la utilización del Sitio Web. A estos efectos se entenderá por Sitio Web la apariencia externa de los interfaces de pantalla, tanto de forma estática como dinámica, es decir, el árbol de navegación, y todos los elementos integrados en ellos (en adelante, Contenidos), así como todos los servicios o recursos en línea que en su caso se ofrezcan a los Usuarios (en adelante, Servicios).</p><p>SIMO se reserva la facultad de modificar, en cualquier momento y sin aviso previo, la presentación y configuración del Sitio Web y de los Contenidos y Servicios que en él pudieran estar incorporados. El Usuario reconoce y acepta que en cualquier momento SIMO pueda interrumpir, desactivar y/o cancelar cualquiera de estos elementos o el acceso a los mismos.</p><p>El acceso al Sitio Web por el Usuario tiene carácter libre y, por regla general, es gratuito sin que el Usuario tenga que proporcionar una contraprestación para disfrutar de ello, salvo en lo relativo al coste de conexión a través de la red de telecomunicaciones suministrada por su proveedor de acceso. La utilización de los Contenidos no requiere previa suscripción o registro alguno, salvo en la reserva y pago de talleres, en el encargo y pago de bolsos personalizados y en la suscripción a la newsletter, donde se solicitarán los datos necesarios para gestionar la reserva, el pedido o el envío de novedades.</p><p>El Usuario. El acceso, navegación y uso del Sitio Web confiere la condición de Usuario, por lo que se aceptan, desde que se inicia la navegación, todas las Condiciones aquí establecidas, así como sus ulteriores modificaciones, sin perjuicio de la aplicación de la normativa legal de obligado cumplimiento. Se recomienda al Usuario leerlas cada vez que visite el Sitio Web.</p><p>El Usuario asume su responsabilidad para realizar un uso correcto del Sitio Web. Esta responsabilidad se extenderá a:</p><p>— Un uso de la información, Contenidos y/o Servicios ofrecidos por SIMO que no sea contrario a las presentes Condiciones, la Ley, la moral o el orden público, o que de otro modo puedan suponer lesión de los derechos de terceros o del funcionamiento del Sitio Web.</p><p>— La veracidad y licitud de las informaciones aportadas por el Usuario en los formularios de SIMO. En todo caso, el Usuario notificará de forma inmediata a SIMO cualquier hecho que permita el uso indebido de la información registrada, tales como robo, extravío o acceso no autorizado a identificadores y/o contraseñas, a fin de proceder a su inmediata cancelación.</p><p>SIMO se reserva el derecho de retirar todos aquellos comentarios y aportaciones que vulneren la ley, la dignidad de la persona, que sean discriminatorios, xenófobos, racistas, pornográficos, de spamming, que atenten contra la juventud o la infancia, el orden o la seguridad pública, o que a su juicio no resulten adecuados para su publicación. En cualquier caso, SIMO no será responsable de las opiniones vertidas por los Usuarios.</p><p>El mero acceso a este Sitio Web no supone entablar ningún tipo de relación comercial entre SIMO y el Usuario.</p><p>El Usuario declara ser mayor de edad y disponer de la capacidad jurídica suficiente para vincularse por las presentes Condiciones. Por lo tanto, este Sitio Web no se dirige a menores de edad. SIMO declina cualquier responsabilidad por el incumplimiento de este requisito.</p><p>El Sitio Web está dirigido principalmente a Usuarios residentes en España. SIMO no asegura que el Sitio Web cumpla con legislaciones de otros países. Si el Usuario reside en otro lugar y decide acceder y/o navegar por el Sitio Web, lo hará bajo su propia responsabilidad.</p></section><section><h3>III. Acceso y navegación: exclusión de garantías y responsabilidad</h3><p>SIMO no garantiza la continuidad, disponibilidad y utilidad del Sitio Web, ni de los Contenidos o Servicios. Hará todo lo posible por el buen funcionamiento del Sitio Web, sin embargo, no se responsabiliza ni garantiza que el acceso no vaya a ser ininterrumpido o esté libre de error.</p><p>Tampoco se responsabiliza de que el contenido o software al que pueda accederse a través del Sitio Web esté libre de error o cause daño al sistema informático del Usuario. En ningún caso SIMO será responsable por las pérdidas, daños o perjuicios de cualquier tipo que surjan por el acceso, navegación y uso del Sitio Web, incluidos los ocasionados a los sistemas informáticos o los provocados por la introducción de virus. Tampoco se hace responsable de los daños que pudiesen ocasionarse por un uso inadecuado del Sitio Web, en particular de las caídas, interrupciones, falta o defectos de las telecomunicaciones que pudieran ocurrir.</p><p>Las piezas de SIMO están hechas a mano, por lo que pueden variar en pequeños detalles respecto a las fotografías.</p></section><section><h3>IV. Política de enlaces</h3><p>El Sitio Web puede poner a disposición de los Usuarios medios de enlace (links, banners, botones), directorios y motores de búsqueda que permiten acceder a sitios web pertenecientes y/o gestionados por terceros. Su objeto es facilitar la búsqueda de información, sin que pueda considerarse una sugerencia, recomendación o invitación para visitarlos.</p><p>SIMO no ofrece ni comercializa por sí ni por medio de terceros los productos y/o servicios disponibles en dichos sitios enlazados. Tampoco garantizará la disponibilidad técnica, exactitud, veracidad, validez o legalidad de sitios ajenos a su propiedad accesibles por medio de los enlaces, ni revisará ni controlará su contenido.</p><p>El Usuario o tercero que realice un hipervínculo desde otra página web al Sitio Web deberá saber que:</p><p>— No se permite la reproducción —total o parcial— de los Contenidos sin autorización expresa de SIMO.</p><p>— No se permite ninguna manifestación falsa, inexacta o incorrecta sobre el Sitio Web ni sus Contenidos o Servicios.</p><p>— El sitio desde el cual se establezca el hipervínculo no contendrá ningún elemento del Sitio Web protegido como propiedad intelectual salvo autorización expresa de SIMO.</p><p>— El establecimiento del hipervínculo no implicará la existencia de relaciones entre SIMO y el titular del sitio web desde el cual se realice, ni el conocimiento y aceptación de SIMO de sus contenidos, servicios y/o actividades.</p></section><section><h3>V. Propiedad intelectual e industrial</h3><p>SIMO, por sí o como parte cesionaria, es titular de todos los derechos de propiedad intelectual e industrial del Sitio Web, así como de los elementos contenidos en el mismo (a título enunciativo: imágenes, sonido, audio, vídeo, software o textos, marcas o logotipos, combinaciones de colores, estructura y diseño, selección de materiales, programas de ordenador necesarios para su funcionamiento, etc.), protegidos por el ordenamiento jurídico español, comunitario e internacional. Se exceptúan la tipografía Poppins, que se distribuye bajo la licencia SIL Open Font License, y los vídeos de archivo de la web, que proceden de Mixkit y se usan con su licencia gratuita.</p><p>Todos los derechos reservados. Quedan expresamente prohibidas la reproducción, la distribución y la comunicación pública, incluida su puesta a disposición, de la totalidad o parte de los contenidos de esta página web, con fines comerciales, en cualquier soporte y por cualquier medio técnico, sin la autorización de SIMO.</p><p>El Usuario se compromete a respetar los derechos de propiedad intelectual e industrial de SIMO. Podrá visualizar, imprimir, copiar y almacenar los elementos del Sitio Web exclusivamente para su uso personal, sin suprimir, alterar o manipular ningún dispositivo de protección o sistema de seguridad instalado en el Sitio Web.</p><p>Si el Usuario o tercero considera que cualquiera de los Contenidos supone una violación de los derechos de propiedad intelectual, deberá comunicarlo inmediatamente a SIMO a través de los datos de contacto del apartado I de este Aviso Legal.</p></section><section><h3>VI. Acciones legales, legislación aplicable y jurisdicción</h3><p>SIMO se reserva la facultad de presentar las acciones civiles o penales que considere necesarias por la utilización indebida del Sitio Web y Contenidos, o por el incumplimiento de estas Condiciones.</p><p>La relación entre el Usuario y SIMO se regirá por la normativa vigente y de aplicación en el territorio español. De surgir cualquier controversia relativa a la interpretación y/o aplicación de estas Condiciones, las partes someterán sus conflictos a la jurisdicción ordinaria, ante los jueces y tribunales que correspondan conforme a derecho.</p><p>Última actualización: noviembre de 2026.</p></section></div></div>
+<div id="privacidad" class="legal" role="dialog" aria-modal="true" aria-labelledby="privacidad-t"><div class="legal-box"><div class="legal-head"><h2 id="privacidad-t">Política de privacidad</h2><a href="#" class="legal-x" aria-label="Cerrar">×</a></div><section><h3>I. Protección de datos</h3><p>Respetando lo establecido en la legislación vigente, SIMO (en adelante, también Sitio Web) se compromete a adoptar las medidas técnicas y organizativas necesarias, según el nivel de seguridad adecuado al riesgo de los datos recogidos.</p><p>Leyes que incorpora esta política. Esta política está adaptada a la normativa española y europea vigente, en concreto a:</p><p>— El Reglamento (UE) 2016/679 del Parlamento Europeo y del Consejo (RGPD).</p><p>— La Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales (LOPD-GDD).</p><p>— El Real Decreto 1720/2007, de 21 de diciembre (RDLOPD).</p><p>— La Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y del Comercio Electrónico (LSSI-CE).</p></section><section><h3>Identidad del responsable del tratamiento</h3><p>El responsable del tratamiento de los datos personales recogidos en SIMO es, conjuntamente, Asociación Junior Empresa UNIVA y Asociación Junior Empresa HAKKA, con NIF G75280909 (UNIVA) y G23921455 (HAKKA). Registro: Registro de Asociaciones de la Comunidad de Madrid: número 41475 (UNIVA) y sección primera, número 41.841 (HAKKA).</p><p>— Dirección: Plaza San Martín 1, 28013 Madrid, España</p><p>— Email: simobysimone@gmail.com</p><p>Pedidos de bolsos y reservas de taller: los datos de quien compra los trata, como responsable, la empresa que vende y cobra: Asociación Junior Empresa UNIVA y Asociación Junior Empresa HAKKA, NIF G75280909 (UNIVA) y G23921455 (HAKKA), con domicilio en Plaza San Martín 1, 28013 Madrid, España y correo simobysimone@gmail.com.</p></section><section><h3>Registro de actividades de tratamiento</h3><p>Los datos personales recabados mediante los formularios del Sitio Web quedarán incorporados y serán tratados con el fin de facilitar, agilizar y cumplir los compromisos establecidos entre SIMO y el Usuario, o el mantenimiento de la relación que se establezca mediante los formularios que este rellene, así como para atender sus solicitudes o consultas. De conformidad con el RGPD y la LOPD-GDD, se mantiene un registro de actividades de tratamiento conforme al artículo 30 del RGPD.</p></section><section><h3>Principios aplicables</h3><p>El tratamiento de los datos personales se someterá a los principios recogidos en el artículo 5 del RGPD: licitud, lealtad y transparencia; limitación de la finalidad; minimización de datos; exactitud; limitación del plazo de conservación; integridad y confidencialidad; y responsabilidad proactiva.</p></section><section><h3>Categorías de datos</h3><p>Las categorías de datos que se tratan en SIMO son únicamente datos identificativos (nombre y email), los datos de la reserva (fecha y número de personas) o del pedido de un bolso personalizado (las opciones elegidas en el diseño, el mensaje opcional que la persona escriba y los datos de entrega: dirección, código postal, ciudad y, si la persona quiere, un teléfono para el mensajero), los datos que exige la factura y, si te apuntas a la newsletter, tu email. Los datos de la tarjeta los recoge Stripe: SIMO no los ve ni los guarda. En ningún caso se tratan categorías especiales de datos en el sentido del artículo 9 del RGPD.</p></section><section><h3>Base legal</h3><p>La base legal para el tratamiento de los datos personales es el consentimiento del Usuario, así como la ejecución del contrato de reserva de taller cuando el Usuario realiza una reserva y pago, y la ejecución del contrato de compra cuando el Usuario encarga y paga un bolso personalizado. El envío de novedades por email (newsletter) se basa solo en tu consentimiento: la casilla viene sin marcar, confirmas tu email desde un enlace que te enviamos y puedes darte de baja desde cualquier correo. SIMO recabará el consentimiento expreso y verificable para el tratamiento de sus datos para uno o varios fines específicos. El Usuario tendrá derecho a retirar su consentimiento en cualquier momento, y será tan fácil retirarlo como darlo.</p></section><section><h3>Fines del tratamiento</h3><p>Los datos personales son recabados y gestionados por SIMO con la finalidad de gestionar las reservas de talleres y los pedidos de bolsos personalizados, facilitar y agilizar los compromisos establecidos entre el Sitio Web y el Usuario, atender sus solicitudes o consultas, y enviar comunicaciones relacionadas con sus reservas o encargos (confirmación, plazos, cambios o incidencias). Igualmente, los datos podrán utilizarse con una finalidad operativa y estadística propia de la actividad de SIMO, así como para mejorar la calidad, funcionamiento y navegación del Sitio Web. SIMO no envía comunicaciones comerciales salvo consentimiento expreso del Usuario (newsletter).</p></section><section><h3>Plazos de conservación</h3><p>Los datos personales sólo serán retenidos durante el tiempo mínimo necesario para los fines de su tratamiento.</p><p>— Consultas, reservas y pedidos que no llegan a pagarse: 3 meses, o hasta que el Usuario solicite su supresión.</p><p>— Reservas y pedidos pagados: el tiempo que exigen las normas fiscales y mercantiles para conservar facturas y justificantes (hasta 6 años); pasado ese plazo se borran. Mientras tanto no se usan para otra cosa.</p><p>— Newsletter: hasta que te des de baja. Después solo se guarda la constancia de la baja, para no volver a escribirte.</p></section><section><h3>Destinatarios</h3><p>Los datos personales del Usuario no serán compartidos con terceros, salvo en los siguientes casos imprescindibles para prestar el servicio solicitado:</p><p>— Stripe Payments Europe Ltd. — procesamiento de pagos con tarjeta y Bizum al realizar una reserva o un pedido. Stripe actúa como encargado del tratamiento conforme a su política de privacidad (stripe.com/privacy).</p><p>— Supabase — base de datos donde se guardan las reservas, los pedidos y los suscriptores, en servidores de Madrid (España). Actúa como encargado del tratamiento.</p><p>— Vercel — alojamiento de la web y de su servidor. Actúa como encargado del tratamiento.</p><p>— Google (Gmail) — envío de confirmaciones de pedido y reserva y de la newsletter. Actúa como encargado del tratamiento.</p><p>— Telegram — avisos internos al equipo de SIMO de que hay un pedido nuevo. El aviso lleva el resumen del bolso y el precio, y por defecto ningún dato de contacto de la persona que compra.</p><p>— Obligaciones legales que exijan la comunicación de datos a autoridades públicas competentes.</p><p>Si alguno de estos proveedores trata datos fuera del Espacio Económico Europeo, lo hace con las garantías que exige el RGPD (por ejemplo, cláusulas contractuales tipo).</p></section><section><h3>Datos de menores de edad</h3><p>Sólo los mayores de 14 años podrán otorgar su consentimiento para el tratamiento de sus datos personales de forma lícita por SIMO. Si se trata de un menor de 14 años, será necesario el consentimiento de los padres o tutores.</p></section><section><h3>Secreto y seguridad</h3><p>SIMO se compromete a adoptar las medidas técnicas y organizativas necesarias para garantizar la seguridad de los datos personales y evitar su destrucción, pérdida, alteración o comunicación o acceso no autorizados. El Sitio Web cuenta con certificado SSL (HTTPS), que asegura que los datos se transmiten de forma cifrada entre el servidor y el Usuario. No obstante, SIMO no puede garantizar la inexpugnabilidad absoluta de internet, y se compromete a comunicar al Usuario sin dilación indebida cualquier violación de la seguridad que entrañe un alto riesgo para sus derechos y libertades.</p></section><section><h3>Derechos del Usuario</h3><p>El Usuario puede ejercer frente al Responsable los siguientes derechos reconocidos en el RGPD y la LOPD-GDD: acceso, rectificación, supresión («derecho al olvido»), limitación del tratamiento, portabilidad, oposición, y a no ser objeto de decisiones basadas únicamente en el tratamiento automatizado, incluida la elaboración de perfiles.</p><p>Para ejercerlos, el Usuario deberá enviar comunicación escrita al Responsable con la referencia «RGPD-SIMO», especificando: nombre y apellidos y copia del DNI, petición con los motivos específicos, domicilio a efecto de notificaciones, fecha y firma, y todo documento que acredite la petición. Esta solicitud podrá enviarse a:</p><p>— Dirección postal: Plaza San Martín 1, 28013 Madrid, España</p><p>— Correo electrónico: simobysimone@gmail.com</p></section><section><h3>Enlaces a sitios web de terceros</h3><p>El Sitio Web puede incluir hipervínculos a páginas de terceros (Instagram, TikTok) que no son operados por SIMO. Los titulares de dichos sitios web dispondrán de sus propias políticas de protección de datos, siendo ellos responsables de sus propios ficheros y prácticas de privacidad.</p></section><section><h3>Reclamaciones ante la autoridad de control</h3><p>Si el Usuario considera que existe un problema o infracción de la normativa en la forma en que se tratan sus datos personales, tendrá derecho a la tutela judicial efectiva y a presentar una reclamación ante la autoridad de control; en España, la Agencia Española de Protección de Datos (https://www.aepd.es/).</p></section><section><h3>II. Aceptación y cambios en esta política</h3><p>Es necesario que el Usuario haya leído y esté conforme con las condiciones sobre la protección de datos contenidas en esta Política de Privacidad, así como que acepte el tratamiento de sus datos personales para que el Responsable pueda proceder al mismo en la forma, durante los plazos y para las finalidades indicadas. El uso del Sitio Web implicará la aceptación de la Política de Privacidad.</p><p>SIMO se reserva el derecho a modificar su Política de Privacidad conforme a su propio criterio o motivado por un cambio legislativo, jurisprudencial o doctrinal de la AEPD. Se recomienda al Usuario consultar esta página periódicamente.</p><p>Última actualización: noviembre de 2026.</p></section></div></div>
+<div id="condiciones" class="legal" role="dialog" aria-modal="true" aria-labelledby="condiciones-t"><div class="legal-box"><div class="legal-head"><h2 id="condiciones-t">Condiciones de compra</h2><a href="#" class="legal-x" aria-label="Cerrar">×</a></div><section><h3>I. Quién vende</h3><p>Los bolsos por encargo (SIMO by Simone) y las plazas de taller (SIMO by YOU) los vende Asociación Junior Empresa UNIVA y Asociación Junior Empresa HAKKA, NIF G75280909 (UNIVA) y G23921455 (HAKKA), con domicilio en Plaza San Martín 1, 28013 Madrid, España. Contacto: simobysimone@gmail.com.</p><p>SIMO es la marca; la web es el escaparate. La empresa que cobra y factura es la indicada arriba.</p></section><section><h3>II. Qué se compra</h3><p>Bolso por encargo (SIMO by Simone). Cada bolso se hace a mano a partir del diseño que eliges en la web: base, tela, cinta, flecos, tachuelas, enganches y cremallera. No hay existencias: el bolso no se hace hasta que se paga el pedido.</p><p>Taller (SIMO by YOU). La reserva da derecho a una plaza por persona en la fecha elegida. Las plazas son limitadas (8 por sesión).</p></section><section><h3>III. Precio y pago</h3><p>Los precios se muestran en euros, con el IVA incluido. El precio del bolso que ves al terminar el diseño es el que se cobra. Dos conceptos llevan un importe medio fijo, y la web lo indica antes de pagar: las tachuelas y la base para ordenador o iPad. El envío cuesta entre 5 € y 15 €, y se muestra antes de pagar.</p><p>El pago se hace en la página segura de Stripe. SIMO no ve ni guarda los datos de tu tarjeta.</p><p>El pedido o la reserva se confirma cuando el pago se completa, y te llega un correo de confirmación. Factura: la emite Asociación Junior Empresa UNIVA.</p></section><section><h3>IV. Plazo y entrega</h3><p>Un bolso por encargo tarda de 2 a 3 semanas desde que se paga el pedido. El plazo incluye el envío. Entrega: envío a domicilio en la Península por entre 5 € y 15 €, que se incluyen en el total que se paga; a Baleares, Canarias, Ceuta y Melilla todavía no se envía.</p><p>Si hubiera algún retraso, te avisaremos por correo.</p></section><section><h3>V. Devoluciones y desistimiento</h3><p>Bolsos por encargo: al ser un producto hecho a medida según tus especificaciones, no tiene derecho de desistimiento de 14 días (artículo 103.c del texto refundido de la Ley General para la Defensa de los Consumidores y Usuarios). Se te indica antes de pagar.</p><p>Taller: la reserva es un servicio de ocio con fecha concreta, que tampoco tiene desistimiento de 14 días (artículo 103.l). Cancelación o cambio de fecha: si nos escribes con 48 horas de antelación, se mueve la plaza a otra fecha sin coste (así lo indican las preguntas frecuentes del taller).</p><p>Lo anterior no afecta a tus derechos si el producto llega con un defecto (apartado siguiente).</p></section><section><h3>VI. Garantía y problemas</h3><p>Las piezas están hechas a mano, así que pueden variar en pequeños detalles respecto a las fotografías y al boceto de la web. Eso no es un defecto.</p><p>Si tu bolso llega con un defecto o no es lo que encargaste, tienes la garantía legal de 3 años desde la entrega. Escríbenos a simobysimone@gmail.com y lo resolvemos: reparación, sustitución, rebaja del precio o devolución del dinero, según el caso.</p></section><section><h3>VII. Datos y ley aplicable</h3><p>Tus datos se tratan como explica la política de privacidad. Estas condiciones se rigen por la ley española.</p><p>Última actualización: noviembre de 2026.</p></section></div></div>
+<div id="cookies" class="legal" role="dialog" aria-modal="true" aria-labelledby="cookies-t"><div class="legal-box"><div class="legal-head"><h2 id="cookies-t">Política de cookies</h2><a href="#" class="legal-x" aria-label="Cerrar">×</a></div><section><h3>Qué son las cookies</h3><p>El acceso a este Sitio Web puede implicar la utilización de cookies. Las cookies son pequeñas cantidades de información que se almacenan en el navegador utilizado por cada Usuario para que el servidor recuerde cierta información que posteriormente y únicamente el servidor que la implementó leerá. Las cookies facilitan la navegación, la hacen más amigable y no dañan el dispositivo de navegación.</p><p>Las cookies que permiten identificar a una persona se consideran datos personales; por tanto, les será de aplicación la Política de Privacidad descrita, y su utilización requerirá el consentimiento del Usuario, ofrecido mediante una decisión afirmativa y positiva, antes del tratamiento inicial, removible y documentada.</p></section><section><h3>Qué cookies utiliza este sitio web</h3><p>Este Sitio Web no instala cookies propias, ni de analítica, ni de publicidad, ni de perfilado, y no utiliza cookies de terceros con fines publicitarios. Concretamente:</p><p>— Cookies propias: ninguna.</p><p>— Preferencias guardadas en tu navegador (almacenamiento local, no son cookies y no salen de tu dispositivo): tu elección sobre las cookies (aceptar o rechazar, con fecha; se vuelve a preguntar a los 24 meses) y si has cerrado o completado el aviso de la newsletter, para no insistirte. Solo se guardan porque tú eliges; son necesarias para respetar tu decisión.</p><p>— Pago con Stripe: al pasar por la página de pago de Stripe para formalizar una reserva o un pedido, Stripe utiliza cookies técnicas necesarias para el proceso de autenticación y fraude, conforme a la política de cookies de Stripe (stripe.com/cookies).</p><p>— Tipografías: las tipografías se sirven desde este mismo sitio, sin servicios de terceros que puedan identificar al Usuario.</p><p>— Redes sociales: los enlaces a Instagram y TikTok son hipervínculos simples: ninguna cookie se instala al navegar por el Sitio Web, sólo si el Usuario decide visitar dichas redes, que tienen sus propias políticas de cookies.</p><p>Hoy no hay cookies opcionales que aceptar. Si algún día se añaden (por ejemplo, estadísticas de visitas), solo se activarán si has aceptado, y esta política se actualizará antes.</p></section><section><h3>Cambiar tu elección</h3><p>Puedes cambiar tu elección cuando quieras desde «Preferencias de cookies», en el pie de cada página: vuelve a salir el aviso y tu nueva decisión sustituye a la anterior.</p></section><section><h3>Desactivar, rechazar y eliminar cookies</h3><p>El Usuario puede deshabilitar, rechazar y eliminar las cookies instaladas en su dispositivo mediante la configuración de su navegador (Chrome, Firefox, Safari, Edge, etc.). Los procedimientos para rechazar y eliminar las cookies difieren de un navegador a otro; el Usuario debe acudir a las instrucciones facilitadas por su propio navegador. En el supuesto de que rechace el uso de cookies —total o parcialmente— podrá seguir usando el Sitio Web, si bien podrá tener limitada la utilización de algunas de sus prestaciones.</p><p>Última actualización: noviembre de 2026.</p></section></div></div>
+
+<aside id="cookie-banner" aria-label="Cookies" style="position:fixed;right:16px;bottom:16px;width:336px;z-index:900;background:#0B0B0C;color:#F6F5F3;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.3);border-radius:6px;font-family:Poppins,system-ui,sans-serif;font-size:13px;line-height:1.5">
+<p style="margin:0">Esta web solo usa lo imprescindible para funcionar. Si algún día añadimos estadísticas, solo será con tu permiso. <a href="#cookies" style="text-decoration:underline">Política de cookies</a></p>
+<div style="display:flex;gap:8px;margin-top:12px">
+<button type="button" data-cookie="rechazar" style="flex:1;height:44px;background:transparent;color:#F6F5F3;border:2px solid #F6F5F3;font:600 12px Poppins,system-ui,sans-serif;text-transform:uppercase;letter-spacing:1px;border-radius:6px;cursor:pointer">Rechazar</button>
+<button type="button" data-cookie="aceptar" style="flex:1;height:44px;background:#F6F5F3;color:#0B0B0C;border:2px solid #F6F5F3;font:600 12px Poppins,system-ui,sans-serif;text-transform:uppercase;letter-spacing:1px;border-radius:6px;cursor:pointer">Aceptar</button>
+</div>
+</aside>
+</div>
+
+<script>
+(function(){
+  var banner=document.getElementById('cookie-banner');
+  if(!banner) return;
+  try { if(localStorage.getItem('simo-cookies')) { banner.remove(); return; } } catch(e) {}
+  banner.querySelectorAll('[data-cookie]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      try { localStorage.setItem('simo-cookies', btn.getAttribute('data-cookie')); } catch(e) {}
+      banner.remove();
+    });
+  });
+})();
+</script>
+</body>
+</html>
