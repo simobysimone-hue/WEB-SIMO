@@ -8,22 +8,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#0B0B0C;color:#111;font-family:Poppins,system-ui,sans-serif;font-size:17px;line-height:1.6}
+body{margin:0;background:#F6F5F3;color:#111;font-family:Poppins,system-ui,sans-serif;font-size:17px;line-height:1.6}
 a{color:inherit;text-decoration:none}
 a:hover{opacity:.7}
 h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing:.5px;margin:0}
 .tag{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#5E1727;font-weight:600;margin:0}
-.page{background:#F6F5F3;min-height:100vh;max-width:1000px;margin:0 auto;padding:0 28px 28px;box-sizing:border-box}
+.page{background:#F6F5F3;min-height:100vh;padding:0 28px 28px;box-sizing:border-box}
+.page>.sec,.page>.foot{max-width:1120px;margin-left:auto;margin-right:auto}
 .win-bar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#F6F5F3;margin:0 -28px 18px;padding:12px 28px;border-bottom:1px solid #E2DED6}
 .win-bar nav{display:flex;gap:22px;font-family:Caveat,cursive;font-size:24px;line-height:1}
 .win-bar nav a{color:#0B0B0C}
 .win-bar nav a[aria-current]{color:#5E1727}
 .win-bar img{height:40px;width:auto;display:block}
 .win-x{font-size:32px;line-height:1;color:#111}
-.hero{position:relative;overflow:hidden;min-height:380px;display:flex;align-items:center;justify-content:center;text-align:center;margin:0 -28px;padding:56px 28px;color:#0B0B0C}
-.hero-bg{position:absolute;top:-16px;left:-16px;width:calc(100% + 32px);height:calc(100% + 32px);object-fit:cover;object-position:center 60%;filter:blur(3px)}
-.hero-shade{position:absolute;inset:0;background:rgba(246,245,243,.6)}
+.hero{position:relative;overflow:hidden;min-height:min(560px,70vh);display:flex;align-items:center;justify-content:center;text-align:center;margin:0 -28px;padding:56px 28px;color:#0B0B0C}
+.hero-bg{position:absolute;top:-16px;left:-16px;width:calc(100% + 32px);height:calc(100% + 32px);object-fit:cover;object-position:center 60%;filter:blur(1.5px)}
+.hero-shade{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(246,245,243,.72) 0%,rgba(246,245,243,.45) 45%,rgba(246,245,243,.08) 80%)}
 .hero-in{position:relative;max-width:640px}
+.hero p{font-weight:500}
 .hero .tag{color:#0B0B0C}
 .hero h2{font-size:64px;color:#5E1727;line-height:1;margin-top:10px}
 .hero h2 em{font-family:Caveat,cursive;font-style:normal;font-weight:700;color:#0B0B0C}
@@ -53,7 +55,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .taller .price{font-family:Impact,"Arial Black",sans-serif;font-size:30px;line-height:1;margin-top:4px}
 .taller .price small{font-family:Poppins,system-ui,sans-serif;font-size:13px;color:#555;margin-left:6px}
 .taller .inc{font-size:13px;color:#555}
-.taller .btn{margin-top:auto;align-self:flex-start}
+.taller .btn{margin-top:auto;align-self:stretch;text-align:center}
 .step b{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:40px;line-height:1;color:#5E1727}
 .step h4{font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:0}
 .step p{margin:0;font-size:14px}
@@ -73,7 +75,8 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .mode input:checked+span{background:#0B0B0C;color:#F6F5F3;border-color:#0B0B0C}
 .mode input:checked+span small{color:#cfcfcf}
 .mode input:focus-visible+span{outline:2px solid #5E1727;outline-offset:2px}
-.cal{max-width:420px}
+.cal{max-width:420px;margin:0 auto}
+.date-sel{text-align:center}
 .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .cal-head p{margin:0;font-family:Impact,"Arial Black",sans-serif;font-size:22px;letter-spacing:.5px}
 .cal-head p::first-letter{text-transform:uppercase}
@@ -86,7 +89,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .cal-days button.available:hover{background:#5E1727;color:#fff;border-color:#5E1727}
 .cal-days button.selected{background:#0B0B0C!important;color:#F6F5F3!important;border-color:#0B0B0C!important}
 .cal-days button.full{color:#999;text-decoration:line-through}
-.cal-legend{display:flex;align-items:center;gap:8px;font-size:13px;color:#555;margin:10px 0 0}
+.cal-legend{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;color:#555;margin:10px 0 0}
 .cal-legend i{width:14px;height:14px;border:1px solid #111;border-radius:4px;background:#F6F5F3;flex:0 0 auto}
 .date-sel{margin:12px 0 0;font-size:14px;font-weight:600}
 .people-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
@@ -152,7 +155,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 <h3>Elige tu taller</h3>
 <div class="grid g2">
 <article class="card taller">
-<p class="when">Sábados · 10:00–14:00</p>
+<p class="when">Sábados · 16:00–20:00</p>
 <h4>Crea tu SIMO</h4>
 <p>Coses tu propio SIMO desde cero con la máquina, acompañada en cada paso. Antes del taller eliges las telas de la tapa y de la base.</p>
 <ul><li>4 h de taller</li><li>Grupos de 8</li></ul>
@@ -161,7 +164,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 <a class="btn" href="#reservar" data-reservar="crea">Reservar Crea tu SIMO</a>
 </article>
 <article class="card taller">
-<p class="when">Viernes y sábados · 17:00–19:30</p>
+<p class="when">Viernes 17:00–19:30 · Sábados 11:30–14:00</p>
 <h4>Customiza tu SIMO</h4>
 <p>Elige tu bolso base y hazlo 100 % tuyo: flecos, lentejuelas, tachuelas, pegatinas, cintas… En 2 horas y media sales con un SIMO que no tiene nadie más.</p>
 <ul><li>2 h 30 min de taller</li><li>Grupos de 20</li></ul>
@@ -187,12 +190,12 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 <p class="tag">03 · Inspo</p>
 <h3>One of a kind.<span class="hand">Como cada una.</span></h3>
 <div class="inspo">
-<img src="img/taller-1.webp" alt="Clutch SIMO plateado con estampado, en un total look blanco" loading="lazy">
-<img src="img/taller-4.webp" alt="Bolsos SIMO negros con lentejuelas y flecos" loading="lazy">
-<img src="img/taller-5.webp" alt="Bolso SIMO negro con remaches dorados en la calle" loading="lazy">
-<img src="img/taller-6.webp" alt="Clutch SIMO marrón con paneles de piel de serpiente" loading="lazy">
-<img src="img/taller-7.webp" alt="Nuevo diseño SIMO" loading="lazy">
-<img src="img/taller-8.webp" alt="Nuevo diseño SIMO" loading="lazy">
+<img src="img/inspo-1.webp" alt="Dos clutches SIMO hechas en el taller: una de pelo estampado de vaca con tachuelas y otra dorada con banda negra" loading="lazy">
+<img src="img/inspo-2.webp" alt="Mesa del taller preparada con máquinas de coser, guías SIMO, hilos y copas" loading="lazy">
+<img src="img/inspo-3.webp" alt="Dos clutches SIMO marrones con bandas de serpiente y remaches dorados" loading="lazy">
+<img src="img/inspo-4.webp" alt="Sala del taller SIMO en Madrid, con las participantes cosiendo" loading="lazy">
+<img src="img/inspo-5.webp" alt="Clutches SIMO plateadas con lentejuelas y flecos sobre una mesa" loading="lazy">
+<img src="img/inspo-6.webp" alt="Clutches SIMO de serpiente recién terminadas en la mesa del taller, con hilos, alfileres y una copa de vino" loading="lazy">
 </div>
 </section>
 
@@ -204,8 +207,8 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 <fieldset>
 <legend>1 · Elige tu taller</legend>
 <div class="grid g2 modes">
-<label class="mode"><input type="radio" name="modalidad" value="crea" checked><span><b>Crea tu SIMO</b><small>Sábados 10:00–14:00 · 4 h · 74,99 €</small></span></label>
-<label class="mode"><input type="radio" name="modalidad" value="customiza"><span><b>Customiza tu SIMO</b><small>Viernes y sábados 17:00–19:30 · 2 h 30 min · 54,99 €</small></span></label>
+<label class="mode"><input type="radio" name="modalidad" value="crea" checked><span><b>Crea tu SIMO</b><small>Sábados 16:00–20:00 · 4 h · 74,99 €</small></span></label>
+<label class="mode"><input type="radio" name="modalidad" value="customiza"><span><b>Customiza tu SIMO</b><small>Viernes 17:00–19:30 · Sábados 11:30–14:00 · 2 h 30 min · 54,99 €</small></span></label>
 </div>
 </fieldset>
 
@@ -219,7 +222,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 </div>
 <div class="cal-week" aria-hidden="true"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
 <div class="cal-days" id="calendar-days"></div>
-<p class="cal-legend"><i></i><span id="legend-text">Crea tu SIMO: sábados de 10:00 a 14:00 · grupos de 8</span></p>
+<p class="cal-legend"><i></i><span id="legend-text">Crea tu SIMO: sábados de 16:00 a 20:00 · grupos de 8</span></p>
 </div>
 <p class="date-sel" id="date-selection">Elige un día marcado en el calendario.</p>
 </fieldset>

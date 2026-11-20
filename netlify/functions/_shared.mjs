@@ -7,8 +7,8 @@ export const MAX_DATE = '2026-12-31';
 
 /* ---- Modalidades y calendario ----
    Desde el 20/11/2026 hay dos modalidades:
-   - Crea tu SIMO: sábados 10:00–14:00, 4 h, 74,99 €, 8 plazas.
-   - Customiza tu SIMO: viernes y sábados 17:00–19:30, 2 h 30 min, 54,99 €, 20 plazas.
+   - Crea tu SIMO: sábados 16:00–20:00, 4 h, 74,99 €, 8 plazas.
+   - Customiza tu SIMO: viernes 17:00–19:30 y sábados 11:30–14:00, 2 h 30 min, 54,99 €, 20 plazas.
    Antes del 20/11 se mantiene el formato antiguo (Crea tu SIMO, 17:00–20:00, 54,99 €). */
 export const CAMBIO = '2026-11-20';
 export const SIN_TALLER = ['2026-12-25'];
@@ -36,8 +36,12 @@ export function sesionesDe(fecha) {
     return [{ modalidad: 'crea', hora: '17:00', horario: '17:00–20:00', duracion: '3 h', precio: 5499, capacidad: 8 }];
   }
   const out = [];
-  if (dow === 6) out.push({ modalidad: 'crea', hora: '10:00', horario: '10:00–14:00', duracion: '4 h', precio: 7499, capacidad: 8 });
-  if (dow === 5 || dow === 6) out.push({ modalidad: 'customiza', hora: '17:00', horario: '17:00–19:30', duracion: '2 h 30 min', precio: 5499, capacidad: 20 });
+  // Viernes: Customiza 17:00–19:30. Sábados: Customiza 11:30–14:00 y Crea 16:00–20:00.
+  if (dow === 5) out.push({ modalidad: 'customiza', hora: '17:00', horario: '17:00–19:30', duracion: '2 h 30 min', precio: 5499, capacidad: 20 });
+  if (dow === 6) {
+    out.push({ modalidad: 'customiza', hora: '11:30', horario: '11:30–14:00', duracion: '2 h 30 min', precio: 5499, capacidad: 20 });
+    out.push({ modalidad: 'crea', hora: '16:00', horario: '16:00–20:00', duracion: '4 h', precio: 7499, capacidad: 8 });
+  }
   return out;
 }
 

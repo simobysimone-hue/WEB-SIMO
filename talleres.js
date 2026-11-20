@@ -11,8 +11,8 @@ const CAMBIO = '2026-11-20';
 const SIN_TALLER = ['2026-12-25'];
 const CERRADAS = ['2026-10-31', '2026-11-13', '2026-11-14', '2026-11-20', '2026-11-21']; // cerradas a mano: salen como completas
 const MODALIDADES = {
-  crea: { nombre: 'Crea tu SIMO', leyenda: 'Crea tu SIMO: sábados de 10:00 a 14:00 · grupos de 8' },
-  customiza: { nombre: 'Customiza tu SIMO', leyenda: 'Customiza tu SIMO: viernes y sábados de 17:00 a 19:30 · grupos de 20' }
+  crea: { nombre: 'Crea tu SIMO', leyenda: 'Crea tu SIMO: sábados de 16:00 a 20:00 · grupos de 8' },
+  customiza: { nombre: 'Customiza tu SIMO', leyenda: 'Customiza tu SIMO: viernes de 17:00 a 19:30 y sábados de 11:30 a 14:00 · grupos de 20' }
 };
 const PRECIO_BASE = { crea: 7499, customiza: 5499 };
 const CAPACIDAD_BASE = { crea: 8, customiza: 20 };
@@ -25,8 +25,12 @@ function sesionesDe(fecha) {
     return [{ modalidad: 'crea', hora: '17:00', horario: '17:00–20:00', precio: 5499, capacidad: 8 }];
   }
   const out = [];
-  if (dow === 6) out.push({ modalidad: 'crea', hora: '10:00', horario: '10:00–14:00', precio: 7499, capacidad: 8 });
-  if (dow === 5 || dow === 6) out.push({ modalidad: 'customiza', hora: '17:00', horario: '17:00–19:30', precio: 5499, capacidad: 20 });
+  // Viernes: Customiza 17:00–19:30. Sábados: Customiza 11:30–14:00 y Crea 16:00–20:00.
+  if (dow === 5) out.push({ modalidad: 'customiza', hora: '17:00', horario: '17:00–19:30', precio: 5499, capacidad: 20 });
+  if (dow === 6) {
+    out.push({ modalidad: 'customiza', hora: '11:30', horario: '11:30–14:00', precio: 5499, capacidad: 20 });
+    out.push({ modalidad: 'crea', hora: '16:00', horario: '16:00–20:00', precio: 7499, capacidad: 8 });
+  }
   return out;
 }
 const sesion = (fecha, mod) => sesionesDe(fecha).find(x => x.modalidad === mod) || null;
