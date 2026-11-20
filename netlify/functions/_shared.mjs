@@ -22,7 +22,7 @@ export const MODALIDADES = {
 /* Telas que se pueden elegir para la tapa y la base (mismas que en telas.html). */
 export const TELAS = {
   'negra': 'Negra', 'turquesa': 'Turquesa', 'marron': 'Marrón', 'beige': 'Beige',
-  'rosa-oscura': 'Rosa oscura', 'plateada': 'Plateada',
+  'roja-oscura': 'Roja oscura', 'plateada': 'Plateada',
   'serpiente-dorada': 'Serpiente dorada', 'serpiente': 'Serpiente', 'vaca': 'Vaca'
 };
 

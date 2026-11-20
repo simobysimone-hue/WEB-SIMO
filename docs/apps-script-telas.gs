@@ -13,6 +13,11 @@
  *       TELAS_SHEET_URL    = la URL /exec de este Apps Script
  *       TELAS_SHEET_SECRET = la misma palabra que TELAS_SECRETO
  *
+ * IMPORTANTE (20/11/2026): la web llama «Roja oscura» a la que antes era «Rosa oscura».
+ * En TELAS_VALIDAS añade 'Roja oscura' (puedes dejar también 'Rosa oscura' para la página antigua):
+ *   const TELAS_VALIDAS = ['Negra', 'Turquesa', 'Marrón', 'Beige', 'Rosa oscura', 'Roja oscura', 'Plateada',
+ *     'Serpiente dorada', 'Serpiente', 'Vaca'];
+ *
  * QUÉ HACE: la web (después de comprobar el pago en Stripe) envía las telas y aquí se escribe
  * una fila por bolso en la pestaña TELAS, con las mismas columnas que la página antigua
  * (Fecha de respuesta, Taller, Nombre, Email, Tapa, Base, Comentario) y cuatro más al final:

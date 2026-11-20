@@ -24,6 +24,13 @@ h1{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:60px;li
 h1 em{display:block;font-family:Caveat,cursive;font-style:normal;font-weight:700;font-size:34px;color:#0B0B0C;margin-top:6px}
 .resumen{text-align:center;font-weight:600;font-size:15px;margin:16px 0 0}
 .intro{text-align:center;font-size:15px;max-width:560px;margin:10px auto 0;color:#333}
+.ejemplos{margin:24px auto 0;max-width:600px;background:#fff;border:1px solid #111;border-radius:6px;padding:16px 16px 12px;text-align:center}
+.ejemplos figure{margin:0}
+.ejemplos img{width:100%;height:auto;display:block;border-radius:6px}
+.ejemplos figure+figure{margin-top:6px}
+.mezcla{margin:10px 0 0;font-family:Impact,"Arial Black",sans-serif;font-size:24px;letter-spacing:.5px;color:#5E1727;line-height:1.1}
+.mezcla span{font-family:Caveat,cursive;font-weight:700;font-size:30px;color:#0B0B0C}
+.pie{margin:4px 0 0;font-family:Caveat,cursive;font-size:20px;color:#555}
 .aviso{background:#0B0B0C;color:#F6F5F3;border-radius:6px;padding:12px 16px;font-size:14px;margin:20px 0 0;text-align:center}
 .aviso a{text-decoration:underline}
 .bolso{margin-top:32px;border:1px solid #111;border-radius:6px;background:#fff;padding:24px;scroll-margin-top:84px}
@@ -71,7 +78,13 @@ textarea{width:100%;min-height:80px;border:1px solid #111;border-radius:6px;padd
 <p class="tag">Pago recibido · un último paso</p>
 <h1>Elige tus telas<em>de tu tapa y de tu base</em></h1>
 <p class="resumen" id="resumen"></p>
-<p class="intro">Puedes elegir la misma tela para las dos partes o mezclarlas. La tira, los flecos y las tachuelas los eliges allí, el día del taller ♡</p>
+<section class="ejemplos" aria-label="Ejemplos: qué es la tapa y qué es la base">
+<figure><img src="img/ejemplo-tapa-base-1.webp" alt="Bolso SIMO de ejemplo: la tapa es de tela de serpiente y la base de polipiel marrón" width="570" height="284"></figure>
+<figure><img src="img/ejemplo-tapa-base-2.webp" alt="Bolso SIMO de ejemplo: tapa y base de polipiel marrón, con una tira de lentejuelas" width="570" height="232"></figure>
+<p class="mezcla">Puedes elegir la misma tela <span>o mezclar</span></p>
+<p class="pie">Bolsos reales hechos en el taller</p>
+</section>
+<p class="intro">Aquí eliges la tela de la <b>tapa</b> y la de la <b>base</b>. La tira, los flecos y las tachuelas los eliges allí, el día del taller ♡</p>
 <p class="aviso" id="aviso" hidden></p>
 <p class="cargando" id="cargando">Cargando tu reserva…</p>
 <form id="form" novalidate hidden>
@@ -87,7 +100,7 @@ textarea{width:100%;min-height:80px;border:1px solid #111;border-radius:6px;padd
 <script>
 'use strict';
 const TELAS = {
-  'Polipiel': [['negra','Negra'],['turquesa','Turquesa'],['marron','Marrón'],['beige','Beige'],['rosa-oscura','Rosa oscura'],['plateada','Plateada']],
+  'Polipiel': [['negra','Negra'],['turquesa','Turquesa'],['marron','Marrón'],['beige','Beige'],['roja-oscura','Roja oscura'],['plateada','Plateada']],
   'Estampadas': [['serpiente-dorada','Serpiente dorada'],['serpiente','Serpiente'],['vaca','Vaca']]
 };
 const NOMBRE = Object.fromEntries(Object.values(TELAS).flat());
