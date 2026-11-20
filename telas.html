@@ -104,7 +104,7 @@ const TELAS = {
   'Estampadas': [['serpiente-dorada','Serpiente dorada'],['serpiente','Serpiente'],['vaca','Vaca']]
 };
 const NOMBRE = Object.fromEntries(Object.values(TELAS).flat());
-const img = id => `img/telas-${id}.webp`;
+const img = id => `img/telas/${id}.jpg`;
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const sesionId = params.get('sesion') || '';
