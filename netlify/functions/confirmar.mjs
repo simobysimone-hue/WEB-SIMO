@@ -1,4 +1,4 @@
-import { json, stripeGet, enviarConfirmacion } from './_shared.mjs';
+import { json, stripeGet, enviarConfirmacion, modalidadDePago, sesion, MODALIDADES } from './_shared.mjs';
 
 export default async (req) => {
   try {
@@ -7,14 +7,26 @@ export default async (req) => {
     let s;
     try { s = await stripeGet(`checkout/sessions/${encodeURIComponent(id)}`); }
     catch { return json({ estado: 'desconocido' }); }
+    const piId = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent?.id;
+    let telas = false;
     if (s.payment_status === 'paid') {
-      const piId = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent?.id;
-      await enviarConfirmacion({ session: s, piId }).catch(e => console.error('Email falló:', e.message));
+      await enviarConfirmacion({ session: s, piId, origin: new URL(req.url).origin }).catch(e => console.error('Email falló:', e.message));
+      if (piId) {
+        try { telas = (await stripeGet(`payment_intents/${piId}`)).metadata?.telas_ok === '1'; } catch {}
+      }
     }
+    const fecha = s.metadata?.fecha || null;
+    const modalidad = modalidadDePago(s.metadata);
+    // Solo datos de la reserva (sin email): sirven para pintar las páginas de telas y de confirmación.
     return json({
       estado: s.payment_status,
-      fecha: s.metadata?.fecha || null,
-      personas: Number(s.metadata?.personas || 0)
+      fecha,
+      personas: Number(s.metadata?.personas || 0),
+      modalidad,
+      taller: MODALIDADES[modalidad].nombre,
+      horario: (fecha && sesion(fecha, modalidad)?.horario) || s.metadata?.hora || '',
+      nombre: String(s.metadata?.nombre || '').split(' ')[0],
+      telas
     });
   } catch (e) {
     console.error('confirmar:', e.message);

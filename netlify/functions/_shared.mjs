@@ -19,6 +19,13 @@ export const MODALIDADES = {
   customiza: { nombre: 'Customiza tu SIMO' }
 };
 
+/* Telas que se pueden elegir para la tapa y la base (mismas que en telas.html). */
+export const TELAS = {
+  'negra': 'Negra', 'turquesa': 'Turquesa', 'marron': 'Marrón', 'beige': 'Beige',
+  'rosa-oscura': 'Rosa oscura', 'plateada': 'Plateada',
+  'serpiente-dorada': 'Serpiente dorada', 'serpiente': 'Serpiente', 'vaca': 'Vaca'
+};
+
 export function lugarDe(fecha) {
   const dow = new Date(fecha + 'T12:00:00').getDay();
   return dow === 6
@@ -131,7 +138,9 @@ const mailer = MAIL_USER && MAIL_PASS
   ? nodemailer.createTransport({ service: 'gmail', auth: { user: MAIL_USER, pass: MAIL_PASS } })
   : null;
 
-export async function enviarConfirmacion({ session, piId }) {
+const escHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+export async function enviarConfirmacion({ session, piId, origin }) {
   if (!mailer) { console.log('Email omitido: falta GMAIL_APP_PASSWORD'); return false; }
   if (piId) {
     try {
@@ -153,14 +162,20 @@ export async function enviarConfirmacion({ session, piId }) {
   const LUGAR = lugarDe(fecha);
   const total = ((session.amount_total ?? personas * ses.precio) / 100).toFixed(2).replace('.', ',');
   const incluye = modalidad === 'customiza'
-    ? 'Incluye todos los materiales necesarios, ademas de vino ilimitado y picoteo. Antes del taller te escribiremos para que elijas tu bolso base.'
+    ? 'Incluye todos los materiales necesarios, ademas de vino ilimitado y picoteo.'
     : 'Todo incluido: materiales, maquinas, guias, patrones, vino ilimitado y picoteo.';
+  // Enlace para elegir (o revisar) las telas, por si se cerró la página después de pagar.
+  const base = origin || process.env.PUBLIC_URL || process.env.URL || '';
+  const telasUrl = base && session.id ? `${base}/telas.html?sesion=${encodeURIComponent(session.id)}` : '';
+  const telasTxt = telasUrl ? `\n\nSi aun no has elegido las telas de tu bolso, hazlo aqui: ${telasUrl}` : '';
+  const telasHtml = telasUrl ? `<p style="font-size:14px">Si aun no has elegido las telas de tu bolso, <a href="${escHtml(telasUrl)}" style="color:#5E1727">hazlo aqui</a>.</p>` : '';
+  const nombreHtml = escHtml(nombre);
   await mailer.sendMail({
     from: `"SIMO" <${MAIL_USER}>`,
     to: email,
     subject: 'Tu plaza en el taller SIMO esta confirmada',
-    text: `Hola ${nombre}:\n\nTu plaza esta confirmada.\n\nTaller: ${taller}\nFecha: ${fechaLarga}\nHorario: ${WORKSHOP_HOURS}\nLugar: ${LUGAR}\nPlazas: ${personas}\nTotal pagado: ${total} EUR\n\n${incluye}\n\nNos vemos en el taller.\nSIMO · Madrid`,
-    html: `<div style="font-family:Georgia,serif;color:#101012;max-width:520px;margin:auto;padding:32px"><h1 style="font-size:26px;letter-spacing:.04em">SIMO</h1><p>Hola ${nombre}:</p><p><strong>Tu plaza esta confirmada.</strong></p><table style="font-size:15px;line-height:1.7"><tr><td>Taller</td><td>&nbsp;&nbsp;<strong>${taller}</strong></td></tr><tr><td>Fecha</td><td>&nbsp;&nbsp;<strong>${fechaLarga}</strong></td></tr><tr><td>Horario</td><td>&nbsp;&nbsp;${WORKSHOP_HOURS}</td></tr><tr><td>Lugar</td><td>&nbsp;&nbsp;${LUGAR}</td></tr><tr><td>Plazas</td><td>&nbsp;&nbsp;${personas}</td></tr><tr><td>Total pagado</td><td>&nbsp;&nbsp;<strong>${total} EUR</strong></td></tr></table><p style="font-size:14px;color:#555">${incluye}</p><p style="font-size:14px">Nos vemos en el taller.<br><em>SIMO · Madrid</em></p></div>`
+    text: `Hola ${nombre}:\n\nTu plaza esta confirmada.\n\nTaller: ${taller}\nFecha: ${fechaLarga}\nHorario: ${WORKSHOP_HOURS}\nLugar: ${LUGAR}\nPlazas: ${personas}\nTotal pagado: ${total} EUR\n\n${incluye}${telasTxt}\n\nNos vemos en el taller.\nSIMO · Madrid`,
+    html: `<div style="font-family:Georgia,serif;color:#101012;max-width:520px;margin:auto;padding:32px"><h1 style="font-size:26px;letter-spacing:.04em">SIMO</h1><p>Hola ${nombreHtml}:</p><p><strong>Tu plaza esta confirmada.</strong></p><table style="font-size:15px;line-height:1.7"><tr><td>Taller</td><td>&nbsp;&nbsp;<strong>${taller}</strong></td></tr><tr><td>Fecha</td><td>&nbsp;&nbsp;<strong>${fechaLarga}</strong></td></tr><tr><td>Horario</td><td>&nbsp;&nbsp;${WORKSHOP_HOURS}</td></tr><tr><td>Lugar</td><td>&nbsp;&nbsp;${LUGAR}</td></tr><tr><td>Plazas</td><td>&nbsp;&nbsp;${personas}</td></tr><tr><td>Total pagado</td><td>&nbsp;&nbsp;<strong>${total} EUR</strong></td></tr></table><p style="font-size:14px;color:#555">${incluye}</p>${telasHtml}<p style="font-size:14px">Nos vemos en el taller.<br><em>SIMO · Madrid</em></p></div>`
   });
   if (piId) {
     try { await stripePost(`payment_intents/${piId}`, { metadata: { emailed: '1' } }); } catch {}

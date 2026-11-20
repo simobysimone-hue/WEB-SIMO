@@ -22,7 +22,7 @@ export default async (req) => {
     if (event.type === 'checkout.session.completed') {
       const s = event.data.object;
       const piId = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent?.id;
-      await enviarConfirmacion({ session: s, piId }).catch(e => console.error('Email falló:', e.message));
+      await enviarConfirmacion({ session: s, piId, origin: new URL(req.url).origin }).catch(e => console.error('Email falló:', e.message));
     }
     return json({ received: true });
   } catch (e) {

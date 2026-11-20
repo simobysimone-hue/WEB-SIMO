@@ -32,6 +32,9 @@ export default async (req) => {
         nombre: pi.metadata.nombre || '',
         email: pi.customer_email || pi.receipt_email || ch.billing_details?.email || '',
         importe: ch.amount / 100,
+        telas: Object.keys(pi.metadata).filter(k => /^telas_\d+$/.test(k)).sort()
+          .map(k => { const n = k.split('_')[1]; const notas = pi.metadata['notas_' + n]; return `Bolso ${n}: ${pi.metadata[k]}${notas ? ' (' + notas + ')' : ''}`; })
+          .join(' | '),
         creado: created.toISOString(),
         cuando: created.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
       });

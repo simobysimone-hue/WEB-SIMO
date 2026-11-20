@@ -24,12 +24,16 @@ p{font-size:15px}
 .btn{display:inline-block;padding:14px 26px;border:2px solid #111;border-radius:6px;background:#111;color:#F6F5F3;font:600 13px Poppins,system-ui,sans-serif;text-transform:uppercase;letter-spacing:1px}
 .btn:hover{background:#5E1727;border-color:#5E1727}
 .btn-line{background:transparent;color:#111}
+.pasos{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 24px;padding:0;list-style:none}
+.pasos li{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border:1px solid #bbb;border-radius:6px;padding:6px 12px;color:#777}
+.pasos li.ahora{background:#0B0B0C;color:#F6F5F3;border-color:#0B0B0C}
 </style>
 </head>
 <body>
 <header><a href="index.html"><img src="brand/logo-negro.png" alt="SIMO"></a><nav><a href="bolsos.html">Bolsos</a><a href="talleres.html">Talleres</a><a href="index.html#contacto">Contacto</a></nav></header>
 <main><div class="box">
-<p class="tag">Pago recibido</p>
+<ol class="pasos" aria-label="Pasos de la reserva"><li class="hecho">1 · Pago ✓</li><li class="hecho">2 · Telas ✓</li><li class="ahora" aria-current="step">3 · Confirmación</li></ol>
+<p class="tag">Pago recibido · telas elegidas</p>
 <h1>¡Plaza <em>confirmada!</em></h1>
 <p>Gracias por reservar. Te hemos enviado la confirmación con todos los detalles a tu email. Nos vemos en el taller · Casa de las Alajas, Madrid. Los viernes se entra por C/ Hileras 18 y los sábados por C/ San Martín 5.</p>
 <p class="det" id="detalle" hidden></p>
@@ -39,6 +43,8 @@ p{font-size:15px}
 const id = new URLSearchParams(location.search).get('sesion');
 if (id) {
   fetch('/api/confirmar?id=' + encodeURIComponent(id)).then(r => r.json()).then(d => {
+    // Orden obligatorio: pago → telas → confirmación. Si aún no hay telas, se vuelve a elegirlas.
+    if (d.estado === 'paid' && d.telas === false) { location.replace('telas.html?sesion=' + encodeURIComponent(id)); return; }
     if (d.fecha) {
       const el = document.getElementById('detalle');
       el.textContent = `Reserva: ${d.fecha} · ${d.personas} ${d.personas === 1 ? 'persona' : 'personas'}`;

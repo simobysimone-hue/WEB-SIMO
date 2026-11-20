@@ -19,7 +19,8 @@ export default async (req) => {
     const origin = new URL(req.url).origin;
     const session = await stripePost('checkout/sessions', {
       mode: 'payment',
-      success_url: `${origin}/exito.html?sesion={CHECKOUT_SESSION_ID}`,
+      // Después de pagar: primero se eligen las telas (telas.html) y luego sale la confirmación (exito.html).
+      success_url: `${origin}/telas.html?sesion={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/cancelo.html`,
       customer_email: email,
       line_items: [{
