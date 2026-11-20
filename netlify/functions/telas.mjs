@@ -56,7 +56,8 @@ export default async (req) => {
       };
       try {
         const r = await fetch(sheetUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), redirect: 'follow' });
-        if (!r.ok) console.error('Hoja de telas: HTTP', r.status);
+        const res = await r.json().catch(() => null);
+        if (!r.ok || !res?.ok) console.error('Hoja de telas no guardó:', r.status, res?.error || 'respuesta no válida');
       } catch (e) { console.error('Hoja de telas falló:', e.message); }
     }
 

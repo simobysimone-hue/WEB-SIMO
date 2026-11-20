@@ -1,36 +1,76 @@
 /**
- * SIMO · Recibir en la hoja de Google las telas elegidas en la web (telas.html).
+ * SIMO · Recibir en la hoja "ASISTENCIA TALLERES SIMO" las telas elegidas en la web (telas.html).
  *
- * Se añade al Apps Script que ya tienes (el de "Elige tus telas") y se vuelve a implementar:
- *   Implementar → Gestionar implementaciones → editar → Nueva versión.
- * La URL /exec de esa implementación va en Netlify como TELAS_SHEET_URL,
- * y la palabra secreta (la misma que pongas abajo en Propiedades del script) como TELAS_SHEET_SECRET.
+ * CÓMO SE INSTALA (una sola vez):
+ * 1. En el Apps Script de la hoja (Extensiones > Apps Script), pega TODO este bloque al final
+ *    del archivo Código.gs, debajo de lo que ya hay. Usa HOJA_ID, PESTANA_TELAS, ZONA,
+ *    TELAS_VALIDAS, pestanaTelas() y sinFormula() que ya tienes ahí.
+ * 2. Configuración del proyecto (rueda dentada) > Propiedades del script > Añadir:
+ *       TELAS_SECRETO = una palabra larga inventada (la misma que pondrás en Netlify).
+ * 3. Implementar > Gestionar implementaciones > lápiz > Versión: "Nueva versión" > Implementar.
+ *    La URL /exec no cambia.
+ * 4. En Netlify (Site configuration > Environment variables):
+ *       TELAS_SHEET_URL    = la URL /exec de este Apps Script
+ *       TELAS_SHEET_SECRET = la misma palabra que TELAS_SECRETO
  *
- * Propiedades del script (Configuración del proyecto → Propiedades del script):
- *   TELAS_SECRETO = <la misma palabra que TELAS_SHEET_SECRET en Netlify>
- *
- * Escribe una fila por bolso en la pestaña "Telas web" (se crea sola si no existe).
- * PROVISIONAL: si tu script ya guarda en otra pestaña con otras columnas, pásame su código y lo adapto.
+ * QUÉ HACE: la web (después de comprobar el pago en Stripe) envía las telas y aquí se escribe
+ * una fila por bolso en la pestaña TELAS, con las mismas columnas que la página antigua
+ * (Fecha de respuesta, Taller, Nombre, Email, Tapa, Base, Comentario) y cuatro más al final:
+ * Tipo de taller, Horario, Origen ("web") e ID de pago.
  */
 function doPost(e) {
-  var datos;
-  try { datos = JSON.parse(e.postData.contents); } catch (err) { return respuesta({ ok: false, error: 'JSON' }); }
+  let d;
+  try { d = JSON.parse((e && e.postData && e.postData.contents) || '{}'); }
+  catch (err) { return respuestaJson({ ok: false, error: 'JSON' }); }
 
-  var secreto = PropertiesService.getScriptProperties().getProperty('TELAS_SECRETO') || '';
-  if (!secreto || datos.secreto !== secreto) return respuesta({ ok: false, error: 'NO_AUTORIZADO' });
+  const secreto = PropertiesService.getScriptProperties().getProperty('TELAS_SECRETO') || '';
+  if (!secreto || d.secreto !== secreto) return respuestaJson({ ok: false, error: 'NO_AUTORIZADO' });
 
-  var hoja = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('HOJA_ID'));
-  var pestana = hoja.getSheetByName('Telas web') || hoja.insertSheet('Telas web');
-  if (pestana.getLastRow() === 0) {
-    pestana.appendRow(['Recibido', 'Fecha taller', 'Taller', 'Horario', 'Nombre', 'Email', 'Bolso', 'Tapa', 'Base', 'Notas', 'ID pago']);
+  const taller = String(d.taller || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(taller)) return respuestaJson({ ok: false, error: 'TALLER' });
+  const bolsos = Array.isArray(d.bolsos) ? d.bolsos : [];
+  if (!bolsos.length) return respuestaJson({ ok: false, error: 'SIN_BOLSOS' });
+  for (let i = 0; i < bolsos.length; i++) {
+    if (TELAS_VALIDAS.indexOf(String(bolsos[i].tapa)) === -1 || TELAS_VALIDAS.indexOf(String(bolsos[i].base)) === -1) {
+      return respuestaJson({ ok: false, error: 'TELAS' });
+    }
   }
-  (datos.bolsos || []).forEach(function (b) {
-    pestana.appendRow([new Date(), datos.taller, datos.modalidad, datos.horario, datos.nombre, datos.email,
-      b.bolso, b.tapa, b.base, b.notas || '', datos.pago]);
-  });
-  return respuesta({ ok: true });
+
+  const corto = function (v, n) { return sinFormula(String(v == null ? '' : v).trim().slice(0, n)); };
+  const fechaTaller = Utilities.parseDate(taller, ZONA, 'yyyy-MM-dd');
+  const total = bolsos.length;
+
+  const bloqueo = LockService.getScriptLock();
+  bloqueo.waitLock(10000);
+  try {
+    const hoja = pestanaTelas();
+    // Cabeceras de las columnas nuevas (H a K), solo si están vacías.
+    const cab = hoja.getRange(1, 8, 1, 4);
+    if (cab.getValues()[0].join('') === '') cab.setValues([['Tipo de taller', 'Horario', 'Origen', 'ID de pago']]);
+
+    bolsos.forEach(function (b, i) {
+      const notas = corto(b.notas, 1000);
+      const comentario = total > 1 ? ('Bolso ' + (i + 1) + ' de ' + total + (notas ? ' · ' + notas : '')) : notas;
+      hoja.appendRow([
+        new Date(),
+        fechaTaller,
+        corto(d.nombre, 80),
+        corto(d.email, 120),
+        String(b.tapa),
+        String(b.base),
+        comentario,
+        corto(d.modalidad, 40),
+        corto(d.horario, 20),
+        'web',
+        corto(d.pago, 60)
+      ]);
+    });
+  } finally {
+    bloqueo.releaseLock();
+  }
+  return respuestaJson({ ok: true });
 }
 
-function respuesta(obj) {
+function respuestaJson(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
