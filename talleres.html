@@ -62,11 +62,46 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .inspo{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .inspo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:6px;display:block}
 .hand{font-family:Caveat,cursive;font-size:30px;color:#5E1727;margin:0 0 0 6px;font-weight:700}
-.book{background:#5E1727;color:#F6F5F3;border-radius:6px;padding:28px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
-.book h3{color:#F6F5F3;font-size:34px;margin:0}
-.book p{margin:6px 0 0;font-size:14px;max-width:460px}
-.book .btn{background:#F6F5F3;color:#0B0B0C;border-color:#F6F5F3}
-.book .btn:hover{background:#0B0B0C;color:#F6F5F3;border-color:#0B0B0C}
+.booking{border:1px solid #111;border-radius:6px;background:#fff;padding:24px;display:flex;flex-direction:column;gap:22px}
+.booking fieldset{border:0;margin:0;padding:0;min-width:0}
+.booking legend{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;color:#5E1727;margin-bottom:10px;padding:0}
+.mode{position:relative;cursor:pointer}
+.mode input{position:absolute;opacity:0}
+.mode span{display:flex;flex-direction:column;gap:2px;border:1px solid #111;border-radius:6px;padding:14px 16px;background:#F6F5F3}
+.mode b{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:22px;letter-spacing:.5px}
+.mode small{font-size:13px;color:#555}
+.mode input:checked+span{background:#0B0B0C;color:#F6F5F3;border-color:#0B0B0C}
+.mode input:checked+span small{color:#cfcfcf}
+.mode input:focus-visible+span{outline:2px solid #5E1727;outline-offset:2px}
+.cal{max-width:420px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-head p{margin:0;font-family:Impact,"Arial Black",sans-serif;font-size:22px;letter-spacing:.5px}
+.cal-head p::first-letter{text-transform:uppercase}
+.cal-head button{width:38px;height:38px;border:1px solid #111;border-radius:6px;background:#fff;font-size:20px;cursor:pointer}
+.cal-head button:disabled{opacity:.3;cursor:default}
+.cal-week,.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-week span{font-size:12px;font-weight:600;color:#555;padding:4px 0}
+.cal-days button,.cal-days span{aspect-ratio:1;border-radius:6px;font:500 14px Poppins,system-ui,sans-serif;border:1px solid transparent;background:none;color:#bbb;padding:0}
+.cal-days button.available{border-color:#111;color:#111;background:#F6F5F3;cursor:pointer}
+.cal-days button.available:hover{background:#5E1727;color:#fff;border-color:#5E1727}
+.cal-days button.selected{background:#0B0B0C!important;color:#F6F5F3!important;border-color:#0B0B0C!important}
+.cal-days button.full{color:#999;text-decoration:line-through}
+.cal-legend{display:flex;align-items:center;gap:8px;font-size:13px;color:#555;margin:10px 0 0}
+.cal-legend i{width:14px;height:14px;border:1px solid #111;border-radius:4px;background:#F6F5F3;flex:0 0 auto}
+.date-sel{margin:12px 0 0;font-size:14px;font-weight:600}
+.people-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.people{display:flex;align-items:center;gap:8px}
+.people button{width:42px;height:42px;border:1px solid #111;border-radius:6px;background:#fff;font-size:20px;cursor:pointer}
+.people select,.booking input[type=text],.booking input[type=email]{height:42px;border:1px solid #111;border-radius:6px;padding:0 12px;font:14px Poppins,system-ui,sans-serif;background:#fff;color:#111;box-sizing:border-box;width:100%}
+.people select{width:auto}
+.total{margin:0;display:flex;align-items:baseline;gap:10px}
+.total span{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;color:#555}
+.total strong{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:34px;line-height:1}
+.btn.pay{width:100%;padding:18px;font-size:14px;background:#5E1727;border-color:#5E1727;cursor:pointer}
+.btn.pay:hover{background:#0B0B0C;border-color:#0B0B0C}
+.btn.pay:disabled{opacity:.6;cursor:wait}
+.booking .note{margin:-12px 0 0}
+.toast{margin:0;background:#0B0B0C;color:#F6F5F3;border-radius:6px;padding:12px 16px;font-size:14px}
 .faq details{border-top:1px solid #ccc;padding:14px 0}
 .faq details:last-child{border-bottom:1px solid #ccc}
 .faq summary{cursor:pointer;font-weight:600;font-size:16px;list-style:none;display:flex;justify-content:space-between;gap:16px}
@@ -80,7 +115,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .foot{margin-top:44px;padding-top:18px;border-top:1px solid #ccc;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#555}
 .foot nav{display:flex;gap:20px;flex-wrap:wrap}
 @media (max-width:820px){.g4{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}.inspo{grid-template-columns:repeat(2,1fr)}.hero h2{font-size:48px}}
-@media (max-width:480px){.page{padding:0 16px 24px}.win-bar,.hero{margin-left:-16px;margin-right:-16px}.win-bar{padding:10px 16px}.hero{padding:44px 16px}.win-bar nav{gap:14px;font-size:21px}.book{padding:22px}}
+@media (max-width:480px){.page{padding:0 16px 24px}.win-bar,.hero{margin-left:-16px;margin-right:-16px}.win-bar{padding:10px 16px}.hero{padding:44px 16px}.win-bar nav{gap:14px;font-size:21px}.booking{padding:16px}}
 </style>
 </head>
 <body>
@@ -123,7 +158,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 <ul><li>4 h de taller</li><li>Grupos de 8</li></ul>
 <p class="price">74,99 €<small>por persona</small></p>
 <p class="inc">Incluye todos los materiales, máquinas, guías y patrones, además de vino ilimitado y picoteo.</p>
-<a class="btn" href="#reservar">Reservar Crea tu SIMO</a>
+<a class="btn" href="#reservar" data-reservar="crea">Reservar Crea tu SIMO</a>
 </article>
 <article class="card taller">
 <p class="when">Viernes y sábados · 17:00–19:30</p>
@@ -132,7 +167,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 <ul><li>2 h 30 min de taller</li><li>Grupos de 20</li></ul>
 <p class="price">54,99 €<small>por persona</small></p>
 <p class="inc">Incluye todos los materiales necesarios, además de vino ilimitado y picoteo.</p>
-<a class="btn" href="#reservar">Reservar Customiza tu SIMO</a>
+<a class="btn" href="#reservar" data-reservar="customiza">Reservar Customiza tu SIMO</a>
 </article>
 </div>
 </section>
@@ -163,14 +198,57 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 
 <section class="sec" id="reservar">
 <p class="tag">04 · Reservar</p>
-<div class="book" style="margin-top:10px">
-<div>
-<h3>Guardaos un rato.</h3>
-<p>Elige taller, día y cuántas venís. Pago seguro con tarjeta o Bizum. Recibiréis la confirmación por email.</p>
+<h3>Guardaos <span class="hand">un rato.</span></h3>
+<form id="booking-form" class="booking" novalidate>
+
+<fieldset>
+<legend>1 · Elige tu taller</legend>
+<div class="grid g2 modes">
+<label class="mode"><input type="radio" name="modalidad" value="crea" checked><span><b>Crea tu SIMO</b><small>Sábados 10:00–14:00 · 4 h · 74,99 €</small></span></label>
+<label class="mode"><input type="radio" name="modalidad" value="customiza"><span><b>Customiza tu SIMO</b><small>Viernes y sábados 17:00–19:30 · 2 h 30 min · 54,99 €</small></span></label>
 </div>
-<a class="btn" href="https://simoby.netlify.app/#reservar" target="_blank" rel="noopener">Reservar y pagar</a>
+</fieldset>
+
+<fieldset>
+<legend>2 · Elige tu día</legend>
+<div class="cal">
+<div class="cal-head">
+<button type="button" id="prev-month" aria-label="Mes anterior">‹</button>
+<p id="month-label" aria-live="polite"></p>
+<button type="button" id="next-month" aria-label="Mes siguiente">›</button>
 </div>
-<p class="note">La reserva y el pago se hacen, de momento, en la web de reservas de SIMO (se abre en una ventana nueva).</p>
+<div class="cal-week" aria-hidden="true"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+<div class="cal-days" id="calendar-days"></div>
+<p class="cal-legend"><i></i><span id="legend-text">Crea tu SIMO: sábados de 10:00 a 14:00 · grupos de 8</span></p>
+</div>
+<p class="date-sel" id="date-selection">Elige un día marcado en el calendario.</p>
+</fieldset>
+
+<fieldset>
+<legend>3 · ¿Cuántas venís?</legend>
+<div class="people-row">
+<div class="people">
+<button type="button" id="people-minus" aria-label="Quitar una persona">−</button>
+<select id="people" name="people" aria-label="Número de personas"><option value="1">1 persona</option></select>
+<button type="button" id="people-plus" aria-label="Añadir una persona">+</button>
+</div>
+<p class="total"><span>Total</span><strong id="total">74,99 €</strong></p>
+</div>
+<p class="note" id="spots-note" hidden></p>
+</fieldset>
+
+<fieldset>
+<legend>4 · Vuestra info</legend>
+<div class="grid g2">
+<input type="text" id="name" name="name" placeholder="Nombre" autocomplete="name" required>
+<input type="email" id="email" name="email" placeholder="Email" autocomplete="email" required>
+</div>
+</fieldset>
+
+<button type="submit" class="btn pay" id="pay-button"><span>Reservar y pagar ·</span> <span id="pay-total">74,99 €</span></button>
+<p class="note">Pago seguro con tarjeta o Bizum. Recibiréis la confirmación por email. Al reservar aceptas la política de cancelación (abajo, en «¿Y si necesito cancelar?»).</p>
+<p class="toast" id="toast" role="status" hidden></p>
+</form>
 </section>
 
 <section class="sec faq">
@@ -201,5 +279,6 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 </footer>
 
 </div>
+<script src="talleres.js"></script>
 </body>
 </html>

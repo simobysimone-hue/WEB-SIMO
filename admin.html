@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin · Reservas SIMO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F5F3;color:#111;font-family:Poppins,system-ui,sans-serif;font-size:15px;line-height:1.5}
+a{color:inherit}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-bottom:1px solid #E2DED6}
+header img{height:40px;display:block}
+main{max-width:1120px;margin:0 auto;padding:32px 24px}
+.tag{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#5E1727;font-weight:600;margin:0}
+h1{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:40px;letter-spacing:.5px;margin:6px 0 20px}
+form{display:flex;gap:10px;flex-wrap:wrap;max-width:480px}
+input{flex:1;min-width:200px;height:44px;border:1px solid #111;border-radius:6px;padding:0 12px;font:14px Poppins,system-ui,sans-serif}
+button{height:44px;padding:0 22px;border:2px solid #111;border-radius:6px;background:#111;color:#F6F5F3;font:600 12px Poppins,system-ui,sans-serif;text-transform:uppercase;letter-spacing:1px;cursor:pointer}
+.err{color:#5E1727;font-weight:600;width:100%;margin:4px 0 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stats div{border:1px solid #111;border-radius:6px;background:#fff;padding:16px}
+.stats b{display:block;font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:32px;color:#5E1727}
+.stats span{font-size:13px;color:#555}
+.wrap{overflow-x:auto;border:1px solid #111;border-radius:6px;background:#fff}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #E2DED6;white-space:nowrap}
+th{font-size:11px;letter-spacing:1px;text-transform:uppercase;background:#0B0B0C;color:#F6F5F3}
+code{font-size:11px}
+.foot{font-size:12px;color:#555}
+@media (max-width:600px){.stats{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><a href="index.html"><img src="brand/logo-negro.png" alt="SIMO"></a></header>
+<main>
+<p class="tag">Admin</p>
+<h1>Reservas pagadas</h1>
+
+<form id="login">
+<input type="password" id="pass" placeholder="Contraseña de admin" autocomplete="current-password" required aria-label="Contraseña de admin">
+<button type="submit">Entrar</button>
+<p id="login-err" class="err" hidden></p>
+</form>
+
+<div id="panel" hidden>
+<div class="stats">
+<div><b id="stat-total">0</b><span>Reservas</span></div>
+<div><b id="stat-plazas">0</b><span>Plazas vendidas</span></div>
+<div><b id="stat-ingresos">0 €</b><span>Ingresos brutos</span></div>
+</div>
+<div class="wrap">
+<table>
+<thead><tr><th>Fecha taller</th><th>Taller</th><th>Plazas</th><th>Nombre</th><th>Email</th><th>Importe</th><th>Pagado</th><th>ID pago</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+<p id="empty" hidden style="padding:16px;margin:0">No hay reservas pagadas todavía.</p>
+</div>
+<p class="foot">Fuente: Stripe. Los IDs sirven para reembolsar o buscar el pago en el panel de Stripe.</p>
+</div>
+</main>
+<script>
+const KEY = 'simo-admin-pass';
+const $ = s => document.querySelector(s);
+const money = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
+const fmtDate = new Intl.DateTimeFormat('es-ES', { dateStyle: 'short' });
+const fmtTime = new Intl.DateTimeFormat('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+const store = {
+  get() { try { return sessionStorage.getItem(KEY); } catch { return null; } },
+  set(v) { try { sessionStorage.setItem(KEY, v); } catch {} },
+  del() { try { sessionStorage.removeItem(KEY); } catch {} }
+};
+
+function cell(tr, text, tag) {
+  const td = document.createElement('td');
+  const el = tag ? document.createElement(tag) : td;
+  el.textContent = text;
+  if (tag) td.append(el);
+  tr.append(td);
+  return td;
+}
+
+function paint(data) {
+  $('#stat-total').textContent = data.total;
+  $('#stat-plazas').textContent = data.plazas;
+  $('#stat-ingresos').textContent = money.format(data.ingresos);
+  const tbody = $('#rows');
+  tbody.replaceChildren();
+  $('#empty').hidden = data.reservas.length > 0;
+  for (const r of data.reservas) {
+    const tr = document.createElement('tr');
+    cell(tr, fmtDate.format(new Date(r.fecha + 'T12:00:00')), 'strong');
+    cell(tr, (r.modalidad || '—') + (r.hora ? ' · ' + r.hora : ''));
+    cell(tr, String(r.personas));
+    cell(tr, r.nombre || '—');
+    const td = cell(tr, '');
+    if (r.email) { const a = document.createElement('a'); a.href = 'mailto:' + r.email; a.textContent = r.email; td.append(a); }
+    cell(tr, money.format(r.importe));
+    cell(tr, fmtTime.format(new Date(r.creado)));
+    cell(tr, r.id, 'code');
+    tbody.append(tr);
+  }
+}
+
+async function load() {
+  const pass = store.get();
+  if (!pass) return;
+  const err = $('#login-err');
+  err.hidden = true;
+  try {
+    const r = await fetch('/api/admin/reservas', { headers: { 'x-admin-pass': pass } });
+    if (r.status === 401) { store.del(); err.textContent = 'Contraseña incorrecta.'; err.hidden = false; return; }
+    if (r.status === 503) { store.del(); err.textContent = 'El panel no está activado: falta poner ADMIN_PASSWORD en Netlify.'; err.hidden = false; return; }
+    if (!r.ok) throw new Error('Error ' + r.status);
+    paint(await r.json());
+    $('#login').hidden = true;
+    $('#panel').hidden = false;
+  } catch {
+    err.textContent = 'No se han podido cargar las reservas.';
+    err.hidden = false;
+  }
+}
+
+$('#login').addEventListener('submit', e => { e.preventDefault(); store.set($('#pass').value); load(); });
+load();
+</script>
+</body>
+</html>

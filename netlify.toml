@@ -1,0 +1,37 @@
+# Web SIMO en Netlify: páginas estáticas en la raíz + funciones de reservas (Stripe y correo).
+[build]
+  command = "npm install --no-audit --no-fund --omit=dev"
+  publish = "."
+  functions = "netlify/functions"
+
+# El correo de contacto sale a propósito en la web, así que no se trata como secreto.
+# La contraseña del correo, la de admin y la clave de Stripe se siguen vigilando.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "GMAIL_USER"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Rutas cortas
+[[redirects]]
+  from = "/talleres"
+  to = "/talleres.html"
+  status = 200
+
+[[redirects]]
+  from = "/bolsos"
+  to = "/bolsos.html"
+  status = 200
+
+# No publicar archivos internos
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
