@@ -195,7 +195,15 @@ $('booking-form').addEventListener('submit', async event => {
     if (!res.ok || !data.url) throw new Error(data.error || 'No se ha podido iniciar el pago.');
     window.location.href = data.url;
   } catch (err) {
-    showToast(ERRORES[err.message] || 'No se ha podido iniciar el pago. Inténtalo de nuevo o escríbenos.');
+    if (err.message === 'LOCAL') {
+      // Copia local: no hay Stripe. Se simula el pago y se pasa a elegir telas, para ver el recorrido.
+      const ses = sesion(selectedDate, modalidad);
+      const q = new URLSearchParams({ demo: '1', personas: people.value, fecha: selectedDate, modalidad, horario: ses ? ses.horario : '' });
+      showToast('Pago simulado (localhost): no se cobra nada. Pasando a elegir telas…', 2500);
+      setTimeout(() => { location.href = 'telas.html?' + q; }, 1500);
+      return;
+    }
+    showToast(ERRORES[err.message] ||'No se ha podido iniciar el pago. Inténtalo de nuevo o escríbenos.');
     if (err.message === 'SIN_PLAZAS') fetchAvailability(iso(nowY, nowM, 1), MAX_DATE);
     btn.disabled = false;
   }

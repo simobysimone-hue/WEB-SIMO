@@ -173,9 +173,11 @@ async function iniciar() {
   } catch { local = true; }
 
   if (local) {
-    const personas = Math.max(1, Math.min(8, Number(params.get('personas')) || 1));
-    $('resumen').textContent = `Vista de prueba · ${personas} ${personas === 1 ? 'plaza' : 'plazas'}`;
-    $('aviso').textContent = 'Estás en la copia local (localhost): aquí no hay pago real y las telas no se guardan. Añade ?personas=2 a la dirección para ver varias plazas.';
+    const personas = Math.max(1, Math.min(20, Number(params.get('personas')) || 1));
+    const f = params.get('fecha');
+    const taller = { crea: 'Crea tu SIMO', customiza: 'Customiza tu SIMO' }[params.get('modalidad')] || '';
+    $('resumen').textContent = ['Vista de prueba', taller, f ? fmtLong.format(new Date(f + 'T12:00:00')) : '', params.get('horario') || '', `${personas} ${personas === 1 ? 'plaza' : 'plazas'}`].filter(Boolean).join(' · ');
+    $('aviso').textContent = 'Pago simulado en la copia local (localhost): no se ha cobrado nada y las telas no se guardan. En la web publicada, aquí se llega después de pagar con Stripe.';
     $('aviso').hidden = false;
     pintarFormulario(personas);
     return;
