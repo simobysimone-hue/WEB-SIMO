@@ -23,7 +23,7 @@ const TELAS = [
     { id: 'beige', nombre: 'Beige', color: '#C9BC9C', cuero: true },
     { id: 'plateada', nombre: 'Plateada', color: '#B4B6BA', cuero: true, brillo: true } ] },
   { grupo: 'Estampadas', items: [
-    { id: 'serpiente-dorada', nombre: 'Serpiente dorada', img: 'img/telas/serpiente-dorada.jpg', color: '#9C8350', extra: 5 },
+    { id: 'serpiente-dorada', nombre: 'Serpiente dorada', img: 'img/tela-serpiente-dorada.webp', color: '#8E7650', extra: 5 },
     { id: 'serpiente', nombre: 'Serpiente', img: 'img/telas/serpiente.jpg', color: '#6E6A62', extra: 5 },
     { id: 'vaca', nombre: 'Vaca', img: 'img/telas/vaca.jpg', color: '#EEE', extra: 0 } ] }
 ];
@@ -43,7 +43,7 @@ const CINTAS = [
     { id: 'cadena-dorada', nombre: 'Dorada', tipo: 'cadena', metal: 'oro', c: ['#C79B4E'] },
     { id: 'cadena-plateada', nombre: 'Plateada', tipo: 'cadena', metal: 'plata', c: ['#A9ABAE'] } ] },
   // Cinta de tela: cualquiera de las telas del bolso.
-  { grupo: 'Cinta de tela', extra: 3, items: TELAS.flatMap(g => g.items.map(t => ({
+  { grupo: 'Cinta de tela', extra: 3, items: TELAS.flatMap(g => g.items.filter(t => t.id !== 'vaca').map(t => ({
     id: 'tela-' + t.id, nombre: `${t.nombre} (${g.grupo.split(' ')[0].toLowerCase()})`, tipo: 'tela', tela: t.id, c: [t.color] }))) }
 ];
 const POS_CINTA = [
@@ -237,9 +237,11 @@ function bolsoSVG() {
     const cadena = c.tipo === 'cadena';
     // Alto de la cinta: unos 4 cm sobre el ancho del bolso (las cadenas, más finas).
     const bh = cadena ? Math.max(10, Math.round(W * .05)) : Math.max(16, Math.min(36, Math.round(W * .12), Math.round(flapH * .42)));
-    const centros = S.cintaPos === 'doble' ? [.3, .7] : [.5];
-    centros.forEach((cy, n) => {
-      const by = Math.round(y + flapH * cy - bh / 2), id = 'pCinta' + n;
+    // Doble: dos cintas pegadas, la de abajo monta un poco sobre la de arriba (solape del 12 %).
+    const solape = Math.round(bh * .12), mitad = (2 * bh - solape) / 2;
+    const tops = S.cintaPos === 'doble' ? [y + flapH * .5 - mitad, y + flapH * .5 - mitad + bh - solape] : [y + flapH * .5 - bh / 2];
+    tops.forEach((top, n) => {
+      const by = Math.round(top), id = 'pCinta' + n;
       if (cadena) {
         // dos hileras de eslabones con brillo metálico
         [by + bh * .3, by + bh * .72].forEach((ly, h) => {
