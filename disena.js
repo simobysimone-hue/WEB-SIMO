@@ -73,7 +73,7 @@ const TACH_GRUPOS = [
     { id: 'plata-5', nombre: 'Redonda 5 mm', mm: 5, img: 'img/tachuela-plateada.webp', ocupa: .9 },
     { id: 'plata-8', nombre: 'Redonda 8 mm', mm: 8, img: 'img/tachuela-plateada.webp', ocupa: .9 },
     { id: 'plata-estrella', nombre: 'Estrella 6 mm', mm: 6, img: 'img/estrella-plateada.webp', ocupa: .82 },
-    { id: 'plata-lentejuela', nombre: 'Lentejuela', mm: 12, img: 'img/lentejuela-plateada.webp', ocupa: .9 } ] },
+    { id: 'plata-lentejuela', nombre: 'Lentejuela 16 mm', mm: 16, img: 'img/lentejuela-plateada.webp', ocupa: .9 } ] },
   { grupo: 'Doradas', items: [
     { id: 'oro-3', nombre: 'Redonda 3 mm', mm: 3, img: 'img/tachuela-dorada.webp', ocupa: .9 },
     { id: 'oro-5', nombre: 'Redonda 5 mm', mm: 5, img: 'img/tachuela-dorada.webp', ocupa: .9 },
