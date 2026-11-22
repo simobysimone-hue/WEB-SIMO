@@ -86,6 +86,22 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .opt.txt[aria-pressed="true"]{padding:11px}
 .tam{display:flex;align-items:center;gap:12px}
 .tam svg{flex:0 0 auto}
+/* Tachuelas */
+.tach-cuenta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#F6F5F3;border:1px solid #E2DED6;border-radius:6px;padding:10px 12px;font-size:14px}
+.tach-acc{display:flex;gap:6px}
+.tach-acc .chip{padding:6px 10px;font-size:12px}
+.tach-acc .chip:disabled{opacity:.4;cursor:default}
+.tach-ayuda{margin:8px 0 0!important;font-size:12px;color:#666}
+.opts.tachas{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+.tacha-opt{align-items:center;text-align:center;cursor:grab;touch-action:manipulation;background:#fff}
+.tacha-opt:active{cursor:grabbing}
+.tacha-foto{height:64px;display:flex;align-items:center;justify-content:center}
+.tacha-foto img{height:auto;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));pointer-events:none}
+.tacha-fantasma{position:fixed;z-index:50;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 3px rgba(0,0,0,.35))}
+.paso-tachas .lienzo{touch-action:none}
+.lienzo .tacha{cursor:grab}
+.lienzo.fuera{outline:2px dashed #5E1727;outline-offset:-4px}
+@media (max-width:900px){.paso-tachas .vista{grid-template-columns:1fr}.paso-tachas .vista .precio{display:none}}
 .partes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .parte{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid #CFCAC2;border-radius:6px;background:#F6F5F3;padding:10px 14px;font:500 13px Poppins,system-ui,sans-serif;color:#555;cursor:pointer}
 .parte b{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:20px;letter-spacing:.5px;color:#111}

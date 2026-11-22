@@ -65,15 +65,30 @@ const FLECOS = [
 const FORMA_FLECOS = [
   { id: 'lados', nombre: 'En los laterales' }, { id: 'tapa', nombre: 'Delante, en la tapa' }
 ];
-const TACHUELAS = [
-  { id: 'redonda-plata', nombre: 'Redondas plateadas', forma: 'redonda', metal: 'plata' },
-  { id: 'redonda-oro', nombre: 'Redondas doradas', forma: 'redonda', metal: 'oro' },
-  { id: 'redonda-bronce', nombre: 'Redondas bronce', forma: 'redonda', metal: 'bronce' },
-  { id: 'estrella-plata', nombre: 'Estrellas plateadas', forma: 'estrella', metal: 'plata' },
-  { id: 'disco-plata', nombre: 'Discos plateados', forma: 'disco', metal: 'plata' }
+/* Tachuelas: se arrastran al bolso una a una. mm = tamaño real; img = foto recortada sin fondo.
+   ocupa = parte del ancho de la imagen que ocupa la pieza (las fotos llevan un pequeño margen). */
+const TACH_GRUPOS = [
+  { grupo: 'Plateadas', items: [
+    { id: 'plata-3', nombre: 'Redonda 3 mm', mm: 3, img: 'img/tachuela-plateada.webp', ocupa: .9 },
+    { id: 'plata-5', nombre: 'Redonda 5 mm', mm: 5, img: 'img/tachuela-plateada.webp', ocupa: .9 },
+    { id: 'plata-8', nombre: 'Redonda 8 mm', mm: 8, img: 'img/tachuela-plateada.webp', ocupa: .9 },
+    { id: 'plata-estrella', nombre: 'Estrella 6 mm', mm: 6, img: 'img/estrella-plateada.webp', ocupa: .82 },
+    { id: 'plata-lentejuela', nombre: 'Lentejuela', mm: 12, img: 'img/lentejuela-plateada.webp', ocupa: .9 } ] },
+  { grupo: 'Doradas', items: [
+    { id: 'oro-3', nombre: 'Redonda 3 mm', mm: 3, img: 'img/tachuela-dorada.webp', ocupa: .9 },
+    { id: 'oro-5', nombre: 'Redonda 5 mm', mm: 5, img: 'img/tachuela-dorada.webp', ocupa: .9 },
+    { id: 'oro-8', nombre: 'Redonda 8 mm', mm: 8, img: 'img/tachuela-dorada.webp', ocupa: .9 },
+    { id: 'oro-estrella', nombre: 'Estrella 6 mm', mm: 6, img: 'img/estrella-dorada.webp', ocupa: .82 } ] },
+  { grupo: 'Cobre', items: [
+    { id: 'cobre-3', nombre: 'Redonda 3 mm', mm: 3, img: 'img/tachuela-cobre.webp', ocupa: .9 },
+    { id: 'cobre-5', nombre: 'Redonda 5 mm', mm: 5, img: 'img/tachuela-cobre.webp', ocupa: .9 } ] },
+  { grupo: 'Cobre metalizado', items: [
+    { id: 'cobremet-3', nombre: 'Redonda 3 mm', mm: 3, img: 'img/tachuela-cobre-metal.webp', ocupa: .9 },
+    { id: 'cobremet-5', nombre: 'Redonda 5 mm', mm: 5, img: 'img/tachuela-cobre-metal.webp', ocupa: .9 } ] }
 ];
-const PRECIO_TACHUELAS = 7.5;
-const POS_TACH = [{ id: 'arriba', nombre: 'Arriba (en la tapa)' }, { id: 'abajo', nombre: 'Abajo (en la base)' }, { id: 'ambas', nombre: 'Arriba y abajo' }];
+const TACH = Object.fromEntries(TACH_GRUPOS.flatMap(g => g.items.map(t => [t.id, { ...t, grupo: g.grupo }])));
+const TACH_INCLUIDAS = 15, TACH_PRECIO_BASE = 5, TACH_PRECIO_EXTRA = .15; // hasta 15 por 5 €, luego 0,15 € cada una
+const precioTachas = n => n ? TACH_PRECIO_BASE + Math.max(0, n - TACH_INCLUIDAS) * TACH_PRECIO_EXTRA : 0;
 const EXTRAS = [
   { id: 'enganches', nombre: 'Enganches', nota: 'Para colgar una correa o una cadena', precio: 5 },
   { id: 'cremallera', nombre: 'Cremallera interna', nota: 'Por dentro del bolso', precio: 10 }
@@ -83,16 +98,16 @@ const todas = grupos => grupos.flatMap(g => g.items.map(i => ({ ...i, extra: i.e
 const TELA = Object.fromEntries(todas(TELAS).map(t => [t.id, t]));
 const CINTA = Object.fromEntries(todas(CINTAS).map(t => [t.id, t]));
 const FLECO = Object.fromEntries(todas(FLECOS).map(t => [t.id, t]));
-const TACH = Object.fromEntries(TACHUELAS.map(t => [t.id, t]));
 const TAM = Object.fromEntries(TAMANOS.map(t => [t.id, t]));
 
 /* ====== Estado ====== */
 const S = { tamano: null, tela: null, cinta: 'ninguna', cintaPos: 'centrado', flecos: 'ninguno', flecosForma: 'lados',
-  tachuelas: [], tachPos: 'arriba', enganches: false, cremallera: false, medW: '', medH: '',
+  tachas: [], enganches: false, cremallera: false, medW: '', medH: '',
   telaBase: 'igual', telaParte: 'tapa' };
 const EXTRA_DOS_TELAS = 2; // tapa y base de distinta tela
 const dosTelas = () => S.tela && S.telaBase !== 'igual' && S.telaBase !== S.tela;
 let paso = 0, maxPaso = 0;
+let GEO = null; // posición del bolso en el dibujo (para arrastrar tachuelas)
 
 /* Medidas escritas (funda de ordenador o iPad): de 15 a 60 cm. */
 const MED_MIN = 15, MED_MAX = 60;
@@ -126,7 +141,7 @@ function lineas() {
   }
   if (S.cinta !== 'ninguna') { const c = CINTA[S.cinta]; const x = S.cintaPos === 'doble' ? 2 : 1; L.push([`Cinta ${c.nombre.toLowerCase()}${x === 2 ? ' × 2' : ''}`, c.extra * x]); }
   if (S.flecos !== 'ninguno') { const f = FLECO[S.flecos]; L.push([`Flecos ${f.nombre.toLowerCase()}`, f.extra]); }
-  if (S.tachuelas.length) L.push([`Tachuelas (${S.tachuelas.length} ${S.tachuelas.length === 1 ? 'tipo' : 'tipos'})`, PRECIO_TACHUELAS]);
+  if (S.tachas.length) L.push([`Tachuelas (${S.tachas.length})`, precioTachas(S.tachas.length)]);
   if (S.enganches) L.push(['Enganches', 5]);
   if (S.cremallera || S.tamano === '30x40') L.push(['Cremallera interna', S.tamano === '30x40' ? 0 : 10]);
   return L;
@@ -161,10 +176,12 @@ function bolsoSVG() {
   const tam = tamActual() || TAM['30x20'];
   const tela = TELA[S.tela] || { color: '#D8D3CB', vacia: true };
   const telaBase = (S.telaBase !== 'igual' && TELA[S.telaBase]) || tela;
-  const VW = 440, VH = 400, maxW = 260, maxH = 220;
+  // En el paso de tachuelas el bolso se ve más grande (zoom) para colocarlas bien.
+  const zoom = typeof PASOS !== 'undefined' && PASOS[paso] && PASOS[paso].id === 'tachuelas';
+  const VW = 440, VH = 400, maxW = zoom ? 400 : 260, maxH = zoom ? 330 : 220;
   const k = Math.min(maxW / tam.w, maxH / tam.h);
   const W = Math.round(tam.w * k), H = Math.round(tam.h * k);
-  const x = Math.round((VW - W) / 2), y = Math.round(58 + (maxH - H) / 2);
+  const x = Math.round((VW - W) / 2), y = Math.round((zoom ? 35 : 58) + (maxH - H) / 2);
   const flapH = Math.round(H * (tam.tapa || .62));
   const fb = y + flapH, bot = y + H;
   const R = rnd(7);
@@ -288,28 +305,17 @@ function bolsoSVG() {
   tapa += `</g><path d="M${x + 1} ${fb - 1}h${W - 2}" stroke="rgba(0,0,0,.45)" stroke-width="1.4"/><path d="M${x + 1} ${fb - 3}h${W - 2}" stroke="rgba(255,255,255,.18)"/>`;
 
   // Tachuelas
+  // Tachuelas colocadas a mano: posición guardada en fracciones del bolso (fx, fy) y tamaño real en mm.
+  const pxPorCm = W / tam.w;
+  GEO = { x, y, W, H, pxPorCm, flapF: flapH / H };
   let tach = '';
-  if (S.tachuelas.length) {
-    const tipos = S.tachuelas.map(id => TACH[id]);
-    const grupo = [[0, 0], [15, 5], [6, 15], [24, 13], [33, 2], [14, 26], [29, 25]];
-    const pinta = (px, py, i) => {
-      const t = tipos[i % tipos.length], g = `url(#g-${t.metal})`;
-      if (t.forma === 'estrella') return `<polygon points="${estrella(px, py, 6)}" fill="${g}" stroke="rgba(0,0,0,.35)" stroke-width=".5"/>`;
-      if (t.forma === 'disco') return `<circle cx="${px}" cy="${py}" r="7.5" fill="${g}" stroke="rgba(0,0,0,.3)" stroke-width=".6"/><circle cx="${px - 3}" cy="${py - 3.5}" r=".9" fill="#555"/><circle cx="${px + 3}" cy="${py - 3.5}" r=".9" fill="#555"/>`;
-      return `<circle cx="${px}" cy="${py + 1}" r="4.6" fill="rgba(0,0,0,.25)"/><circle cx="${px}" cy="${py}" r="4.4" fill="${g}"/>`;
-    };
-    // k: si la base es baja (p. ej. 35 × 17, tapa de 4/5), el grupo de abajo se aplasta para que quepa.
-    const esquina = (by, k = 1) => {
-      let s = '';
-      grupo.forEach(([dx, dy], j) => { s += pinta(x + 14 + dx, by + dy * k, j); s += pinta(x + W - 14 - dx, by + dy * k, j); });
-      return s;
-    };
-    if (S.tachPos !== 'abajo') tach += esquina(fb - 36);
-    if (S.tachPos !== 'arriba') {
-      const libre = bot - fb - 16;
-      tach += libre >= 26 ? esquina(Math.min(bot - 34, fb + 16)) : esquina(fb + 10, Math.max(0, (bot - fb - 16) / 26));
-    }
-  }
+  S.tachas.forEach((t, i) => {
+    const tp = TACH[t.id]; if (!tp) return;
+    const d = tp.mm / 10 * pxPorCm, lado = d / tp.ocupa, cx = x + t.fx * W, cy = y + t.fy * H;
+    tach += `<g class="tacha" data-i="${i}"><ellipse cx="${(cx + d * .12).toFixed(1)}" cy="${(cy + d * .18).toFixed(1)}" rx="${(d * .5).toFixed(2)}" ry="${(d * .45).toFixed(2)}" fill="rgba(0,0,0,.3)"/>`
+      + `<image href="${tp.img}" x="${(cx - lado / 2).toFixed(2)}" y="${(cy - lado / 2).toFixed(2)}" width="${lado.toFixed(2)}" height="${lado.toFixed(2)}"/>`
+      + `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${Math.max(6, d / 2 + 2).toFixed(1)}" fill="transparent"/></g>`; // zona para cogerla con el dedo
+  });
 
   // Medidas
   // Con flecos delante, el ancho se marca encima del bolso; con flecos laterales, el alto se separa más.
@@ -323,7 +329,7 @@ function bolsoSVG() {
     <text x="${x + W + mdx + 8}" y="${y + H / 2}" stroke="none" transform="rotate(90 ${x + W + mdx + 8} ${y + H / 2})" text-anchor="middle">${tam.plegado ? `${cm(tam.h)} cm (${tam.plegado} abierto)` : `${cm(tam.h)} cm`}</text></g>`;
 
   const vacio = !S.tamano || !S.tela ? `<text x="${VW / 2}" y="${y + H / 2}" text-anchor="middle" font-family="Poppins, sans-serif" font-size="13" fill="#6b6b6b">${!S.tamano ? 'Elige el tamaño para empezar' : 'Ahora elige la tela'}</text>` : '';
-  return `<svg viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${atras}${cuerpo}${tapa}${tach}${delante}${S.tamano ? medidas : ''}${vacio}</svg>`;
+  return `<svg viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${atras}${cuerpo}${tapa}${delante}${tach}${S.tamano && !zoom ? medidas : ''}${vacio}</svg>`;
 }
 
 function pintarBolso() {
@@ -394,13 +400,7 @@ const PASOS = [
     html: () => `<div class="opts">${opcion({ pulsado: S.flecos === 'ninguno', muestra: 'background:#F6F5F3', nombre: 'Sin flecos', dato: 'flecos', valor: 'ninguno' })}</div>`
       + FLECOS.map(g => `<p class="grupo">${g.grupo}<em>${precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => opcion({ pulsado: S.flecos === i.id, muestra: muestraFleco(i), nombre: i.nombre, dato: 'flecos', valor: i.id })).join('')}</div>`).join('')
       + (S.flecos !== 'ninguno' ? `<p class="grupo">¿Cómo van?</p>${chips(FORMA_FLECOS, S.flecosForma, 'flecosforma')}` : '') },
-  { id: 'tachuelas', titulo: 'Añade tachuelas', ayuda: `Mezcla hasta 3 tipos. Todo el conjunto cuesta lo mismo, lleves uno o tres: ${eur(PRECIO_TACHUELAS)}.`, listo: () => true,
-    html: () => `<p class="grupo">Tipos<em>${S.tachuelas.length}/3 elegidos</em></p><div class="opts">${TACHUELAS.map(t => {
-        const on = S.tachuelas.includes(t.id), m = METAL[t.metal];
-        const mu = t.forma === 'estrella' ? `background:${m[1]};clip-path:polygon(50% 8%,61% 38%,93% 38%,67% 57%,77% 88%,50% 70%,23% 88%,33% 57%,7% 38%,39% 38%)`
-          : `background:radial-gradient(circle at 35% 30%,${m[0]},${m[1]} 45%,${m[2]} 75%,transparent 76%) center/${t.forma === 'disco' ? '46px 46px' : '30px 30px'} no-repeat,#F6F5F3`;
-        return opcion({ pulsado: on, deshab: !on && S.tachuelas.length >= 3, muestra: mu, nombre: t.nombre, dato: 'tach', valor: t.id });
-      }).join('')}</div>${S.tachuelas.length ? `<p class="grupo">¿Dónde van?</p>${chips(POS_TACH, S.tachPos, 'tachpos')}` : '<p class="ayuda" style="margin-top:12px">Si no quieres tachuelas, pasa al siguiente paso.</p>'}` },
+  { id: 'tachuelas', titulo: 'Añade tachuelas', ayuda: 'Arrastra cada tachuela hasta el sitio del bolso donde la quieras. Hasta 15 tachuelas, 5 €; a partir de ahí, 0,15 € cada una.', listo: () => true, html: tachasHTML },
   { id: 'extras', titulo: 'Extras', ayuda: 'Detalles que puedes añadir.', listo: () => true,
     html: () => `<div class="opts anchas">${EXTRAS.map(e => {
         const incl = e.id === 'cremallera' && S.tamano === '30x40';
@@ -414,7 +414,7 @@ function resumenHTML() {
   const extra = [];
   if (S.cinta !== 'ninguna') extra.push(['Dónde va la cinta', POS_CINTA.find(p => p.id === S.cintaPos).nombre]);
   if (S.flecos !== 'ninguno') extra.push(['Cómo van los flecos', FORMA_FLECOS.find(p => p.id === S.flecosForma).nombre]);
-  if (S.tachuelas.length) extra.push(['Tachuelas', S.tachuelas.map(id => TACH[id].nombre).join(', ') + ' · ' + POS_TACH.find(p => p.id === S.tachPos).nombre.toLowerCase()]);
+  if (S.tachas.length) extra.push(['Tachuelas', resumenTachas()]);
   return `<ul class="res">${L.map(([n, p], i) => `<li><span>${esc(n)}</span><span>${p ? (i ? '+' : '') + eur(p) : 'incluido'}</span></li>`).join('')}
     ${extra.map(([n, v]) => `<li><span>${esc(n)}</span><span>${esc(v)}</span></li>`).join('')}
     <li><span><b>Total del bolso</b></span><span><b>${eur(total)}</b> + envío</span></li></ul>
@@ -433,10 +433,95 @@ function resumenHTML() {
   <p class="toast" id="aviso" hidden></p>`;
 }
 
+/* ====== Tachuelas: catálogo, resumen y arrastre ====== */
+
+function tachasHTML() {
+  const n = S.tachas.length, extra = Math.max(0, n - TACH_INCLUIDAS);
+  const cuenta = n ? `<b>${n}</b> ${n === 1 ? 'tachuela' : 'tachuelas'} · ${eur(precioTachas(n))}${extra ? ` (5 € + ${extra} × 0,15 €)` : n < TACH_INCLUIDAS ? ` · te quedan ${TACH_INCLUIDAS - n} incluidas` : ''}` : 'Aún no has puesto ninguna';
+  return `<div class="tach-cuenta"><span>${cuenta}</span><span class="tach-acc">
+      <button type="button" class="chip" data-tachborrar="ultima" ${n ? '' : 'disabled'}>Quitar la última</button>
+      <button type="button" class="chip" data-tachborrar="todas" ${n ? '' : 'disabled'}>Quitar todas</button></span></div>
+    <p class="nt tach-ayuda">Con ratón: arrastra la tachuela al bolso. En el móvil: tócala para añadirla y luego muévela con el dedo sobre el bolso. Para quitar una, sácala del bolso o tócala dos veces.</p>`
+    + TACH_GRUPOS.map(g => `<p class="grupo">${g.grupo}</p><div class="opts tachas">${g.items.map(t =>
+      `<button type="button" class="opt tacha-opt" data-tachadd="${t.id}" aria-label="Añadir ${esc(t.nombre)} ${esc(g.grupo.toLowerCase())}">
+        <span class="tacha-foto"><img src="${t.img}" alt="" draggable="false" style="width:${Math.round(14 + t.mm * 4.2 / t.ocupa * .9)}px"></span><b>${esc(t.nombre)}</b></button>`).join('')}</div>`).join('');
+}
+function zonaTacha(t) {
+  const fl = GEO ? GEO.flapF : .6;
+  return `${t.fy < fl ? 'tapa' : 'base'} ${t.fx < .34 ? 'izquierda' : t.fx > .66 ? 'derecha' : 'centro'}`;
+}
+function resumenTachas() {
+  const cuenta = {};
+  S.tachas.forEach(t => { const tp = TACH[t.id]; const k = `${tp.nombre.toLowerCase()} ${tp.grupo.toLowerCase().replace(/as$/, 'a')} (${zonaTacha(t)})`; cuenta[k] = (cuenta[k] || 0) + 1; });
+  return Object.entries(cuenta).map(([k, v]) => `${v} × ${k}`).join(', ');
+}
+function aSvg(cx, cy) {
+  const svg = $('lienzo').querySelector('svg'); if (!svg) return null;
+  return new DOMPoint(cx, cy).matrixTransform(svg.getScreenCTM().inverse());
+}
+const dentro = p => GEO && p && p.x >= GEO.x - 4 && p.x <= GEO.x + GEO.W + 4 && p.y >= GEO.y - 4 && p.y <= GEO.y + GEO.H + 4;
+const fraccion = p => ({ fx: Math.min(.98, Math.max(.02, (p.x - GEO.x) / GEO.W)), fy: Math.min(.98, Math.max(.02, (p.y - GEO.y) / GEO.H)) });
+function anadirEnCentro(id) {
+  const fl = GEO ? GEO.flapF : .6, k = S.tachas.length;
+  cambiar(() => { S.tachas.push({ id, fx: .5 + ((k * 37) % 9 - 4) * .04, fy: fl * .5 + ((k * 23) % 5 - 2) * .05 }); });
+}
+let arrastre = null, suprimirClick = false;
+document.addEventListener('pointerdown', e => {
+  const nueva = e.target.closest('[data-tachadd]'), puesta = e.target.closest('#lienzo .tacha');
+  if (!nueva && !puesta) return;
+  if (nueva && e.pointerType === 'touch') return; // en el móvil se añade con un toque (click)
+  e.preventDefault();
+  arrastre = { id: nueva && nueva.dataset.tachadd, i: puesta ? +puesta.dataset.i : null, x0: e.clientX, y0: e.clientY, movido: false, fantasma: null };
+});
+document.addEventListener('pointermove', e => {
+  if (!arrastre) return;
+  if (!arrastre.movido && Math.hypot(e.clientX - arrastre.x0, e.clientY - arrastre.y0) < 4) return;
+  arrastre.movido = true;
+  if (arrastre.i !== null) { // mover una tachuela ya puesta
+    const p = aSvg(e.clientX, e.clientY); if (!p || !GEO) return;
+    Object.assign(S.tachas[arrastre.i], fraccion(p));
+    $('lienzo').classList.toggle('fuera', !dentro(p));
+    pintarBolso();
+    return;
+  }
+  if (!arrastre.fantasma) { // tachuela nueva: se ve flotando al tamaño que tendrá en el bolso
+    const tp = TACH[arrastre.id], svg = $('lienzo').querySelector('svg');
+    const escala = svg ? svg.getBoundingClientRect().width / 440 : 1;
+    const lado = Math.max(8, tp.mm / 10 * (GEO ? GEO.pxPorCm : 8.7) / tp.ocupa * escala);
+    const f = document.createElement('img'); f.src = tp.img; f.className = 'tacha-fantasma'; f.style.width = f.style.height = lado + 'px';
+    document.body.append(f); arrastre.fantasma = f;
+  }
+  arrastre.fantasma.style.left = e.clientX + 'px'; arrastre.fantasma.style.top = e.clientY + 'px';
+});
+document.addEventListener('pointerup', e => {
+  if (!arrastre) return;
+  const a = arrastre; arrastre = null;
+  $('lienzo').classList.remove('fuera');
+  if (a.fantasma) a.fantasma.remove();
+  if (!a.movido) return; // un toque: lo gestiona el click
+  suprimirClick = true; setTimeout(() => { suprimirClick = false; }, 0);
+  const p = aSvg(e.clientX, e.clientY);
+  if (a.i !== null) { if (!dentro(p)) S.tachas.splice(a.i, 1); cambiar(() => {}); return; }
+  if (dentro(p)) cambiar(() => { S.tachas.push({ id: a.id, ...fraccion(p) }); });
+});
+document.addEventListener('pointercancel', () => { if (arrastre && arrastre.fantasma) arrastre.fantasma.remove(); arrastre = null; });
+$('lienzo').addEventListener('dblclick', e => { const g = e.target.closest('.tacha'); if (g) cambiar(() => { S.tachas.splice(+g.dataset.i, 1); }); });
+// doble toque en el móvil
+let ultimoToque = { i: -1, t: 0 };
+$('lienzo').addEventListener('pointerup', e => {
+  if (e.pointerType !== 'touch') return;
+  const g = e.target.closest('.tacha'); if (!g) return;
+  const i = +g.dataset.i, ahora = Date.now();
+  if (ultimoToque.i === i && ahora - ultimoToque.t < 350) { cambiar(() => { S.tachas.splice(i, 1); }); ultimoToque = { i: -1, t: 0 }; }
+  else ultimoToque = { i, t: ahora };
+});
+
 function pintarPaso() {
   const P = PASOS[paso];
   $('progreso').innerHTML = PASOS.map((p, i) => `<li><button type="button" class="${i < paso ? 'hecho' : i === paso ? 'ahora' : ''}" ${i > maxPaso ? 'disabled' : ''} data-ir="${i}" aria-label="Paso ${i + 1}: ${p.titulo}"${i === paso ? ' aria-current="step"' : ''}></button></li>`).join('');
   $('paso').innerHTML = `<p class="num">Paso ${paso + 1} de ${PASOS.length}</p><h2>${P.titulo}</h2><p class="ayuda">${P.ayuda}</p>${P.html()}`;
+  document.body.classList.toggle('paso-tachas', P.id === 'tachuelas');
+  pintarBolso(); // el zoom cambia según el paso
   $('atras').disabled = paso === 0;
   $('siguiente').hidden = paso === PASOS.length - 1;
   $('siguiente').disabled = !P.listo();
@@ -461,8 +546,8 @@ $('paso').addEventListener('click', e => {
   else if (d.cintapos) cambiar(() => { S.cintaPos = d.cintapos; });
   else if (d.flecos) cambiar(() => { S.flecos = d.flecos; });
   else if (d.flecosforma) cambiar(() => { S.flecosForma = d.flecosforma; });
-  else if (d.tach) cambiar(() => { const i = S.tachuelas.indexOf(d.tach); if (i >= 0) S.tachuelas.splice(i, 1); else if (S.tachuelas.length < 3) S.tachuelas.push(d.tach); });
-  else if (d.tachpos) cambiar(() => { S.tachPos = d.tachpos; });
+  else if (d.tachadd) { if (!suprimirClick) anadirEnCentro(d.tachadd); }
+  else if (d.tachborrar) cambiar(() => { if (d.tachborrar === 'todas') S.tachas = []; else S.tachas.pop(); });
   else if (d.extra) cambiar(() => { S[d.extra] = !S[d.extra]; });
 });
 // Medidas de la funda: se actualizan el dibujo, el precio y la flecha sin volver a pintar el paso (no se pierde el cursor).
@@ -495,7 +580,7 @@ function enviar(e) {
     ...L.map(([n, p]) => `· ${n}: ${p ? eur(p) : 'incluido'}`),
     S.cinta !== 'ninguna' ? `· Cinta: ${POS_CINTA.find(p => p.id === S.cintaPos).nombre}` : '',
     S.flecos !== 'ninguno' ? `· Flecos: ${FORMA_FLECOS.find(p => p.id === S.flecosForma).nombre}` : '',
-    S.tachuelas.length ? `· Tachuelas: ${S.tachuelas.map(id => TACH[id].nombre).join(', ')} (${POS_TACH.find(p => p.id === S.tachPos).nombre})` : '',
+    S.tachas.length ? `· Tachuelas (${S.tachas.length}): ${resumenTachas()} — su sitio exacto se ve en el dibujo; adjunta una captura si quieres` : '',
     `Total del bolso: ${eur(total)} + envío`, '',
     `Nombre: ${d.nombre}`, `Email: ${d.email}`, `Dirección: ${d.direccion}, ${d.cp} ${d.ciudad}`, d.telefono ? `Teléfono: ${d.telefono}` : '', d.notas ? `Notas: ${d.notas}` : ''
   ].filter(Boolean).join('\n');
