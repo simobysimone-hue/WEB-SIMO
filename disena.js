@@ -30,14 +30,14 @@ const TELAS = [
 const CINTAS = [
   // Lentejuelas y plata: fotos reales de las cintas (img/cinta-*.webp, en horizontal).
   { grupo: 'Lentejuelas', extra: 3, items: [
-    { id: 'lent-negra-dorada', nombre: 'Negra y dorada', img: 'img/cinta-lent-negra-dorada.webp', ar: 4.7, c: ['#1C1C1C', '#C9A55B'] },
-    { id: 'lent-plateada', nombre: 'Plateada', img: 'img/cinta-lent-plateada.webp', ar: 6.97, c: ['#C9C8C4'] },
-    { id: 'lent-dorada', nombre: 'Dorada', img: 'img/cinta-lent-dorada.webp', ar: 6.52, c: ['#C9AC4F'] },
-    { id: 'lent-plateada-oscuro', nombre: 'Plateada oscuro', img: 'img/cinta-lent-plateada-oscuro.webp', ar: 6, c: ['#5B5651'] } ] },
+    { id: 'lent-negra-dorada', nombre: 'Negra y dorada', img: 'img/cinta-lent-negra-dorada.webp', c: ['#1C1C1C', '#C9A55B'] },
+    { id: 'lent-plateada', nombre: 'Plateada', img: 'img/cinta-lent-plateada.webp', c: ['#C9C8C4'] },
+    { id: 'lent-dorada', nombre: 'Dorada', img: 'img/cinta-lent-dorada.webp', c: ['#C9AC4F'] },
+    { id: 'lent-plateada-oscuro', nombre: 'Plateada oscuro', img: 'img/cinta-lent-plateada-oscuro.webp', c: ['#5B5651'] } ] },
   { grupo: 'Plata', extra: 4, items: [
-    { id: 'plata-flores', nombre: 'Flores', img: 'img/cinta-plata-flores.webp', ar: 5.08, c: ['#E6E7EA'] },
-    { id: 'plata-malla', nombre: 'Malla plata', img: 'img/cinta-plata-malla.webp', ar: 4.57, c: ['#9A9B9E'] },
-    { id: 'plata-malla-tachuelas', nombre: 'Malla tachuelas', img: 'img/cinta-plata-malla-tachuelas.webp', ar: 5.93, c: ['#B7B5B0'] } ] },
+    { id: 'plata-flores', nombre: 'Flores', img: 'img/cinta-plata-flores.webp', c: ['#E6E7EA'] },
+    { id: 'plata-malla', nombre: 'Malla plata', img: 'img/cinta-plata-malla.webp', c: ['#9A9B9E'] },
+    { id: 'plata-malla-tachuelas', nombre: 'Malla tachuelas', img: 'img/cinta-plata-malla-tachuelas.webp', c: ['#B7B5B0'] } ] },
   // Cadenas: dos hileras finas, dibujadas con eslabones metálicos.
   { grupo: 'Cadena', extra: 5, items: [
     { id: 'cadena-dorada', nombre: 'Dorada', tipo: 'cadena', metal: 'oro', c: ['#C79B4E'] },
@@ -251,10 +251,11 @@ function bolsoSVG() {
         });
         return;
       }
-      if (c.img) defs += `<pattern id="${id}" patternUnits="userSpaceOnUse" x="${x}" y="${by}" width="${(bh * c.ar).toFixed(1)}" height="${bh}"><rect width="${bh * c.ar}" height="${bh}" fill="${c.c[0]}"/><image href="${c.img}" width="${(bh * c.ar).toFixed(1)}" height="${bh}" preserveAspectRatio="none"/></pattern>`;
-      else defs += rellenoTela(TELA[c.tela], id, x, by, W, bh);
+      if (!c.img) defs += rellenoTela(TELA[c.tela], id, x, by, W, bh);
       tapa += `<rect x="${x}" y="${by + 2}" width="${W}" height="${bh}" fill="rgba(0,0,0,.28)"/>` // sombra bajo la cinta
-        + `<rect x="${x}" y="${by}" width="${W}" height="${bh}" fill="url(#${id})"/>`
+        // foto de la cinta: una sola pieza que cubre todo el ancho (sin repetir); lo que sobra a la derecha se recorta
+        + (c.img ? `<rect x="${x}" y="${by}" width="${W}" height="${bh}" fill="${c.c[0]}"/><image href="${c.img}" x="${x}" y="${by}" width="${W}" height="${bh}" preserveAspectRatio="xMinYMid slice"/>`
+          : `<rect x="${x}" y="${by}" width="${W}" height="${bh}" fill="url(#${id})"/>`)
         + `<rect x="${x}" y="${by}" width="${W}" height="${bh}" fill="url(#luz)" opacity=".5"/>`
         + `<line x1="${x}" y1="${by + .5}" x2="${x + W}" y2="${by + .5}" stroke="rgba(0,0,0,.35)"/><line x1="${x}" y1="${by + bh - .5}" x2="${x + W}" y2="${by + bh - .5}" stroke="rgba(0,0,0,.35)"/>`;
       if (c.tipo === 'tela') // pespunte de la cinta de tela
@@ -312,7 +313,7 @@ const muestraTela = t => t.img ? `background-image:url(${t.img})`
   : t.cuero ? `background:${t.brillo ? 'linear-gradient(135deg,rgba(255,255,255,.35),rgba(255,255,255,0) 40%,rgba(255,255,255,.25) 65%,rgba(0,0,0,.1)),' : ''}url(img/grano-cuero.webp) center/300px,${t.color};background-blend-mode:${t.brillo ? 'normal,' : ''}overlay`
   : `background:${t.color}`;
 const muestraCinta = c => {
-  if (c.img) return `background:url(${c.img}) left center/auto 100% repeat-x,${c.c[0]}`;
+  if (c.img) return `background:url(${c.img}) left center/cover no-repeat,${c.c[0]}`;
   if (c.tipo === 'tela') return muestraTela(TELA[c.tela]);
   // cadena: dos hileras de eslabones (pequeño SVG) sobre fondo claro
   const m = METAL[c.metal];
