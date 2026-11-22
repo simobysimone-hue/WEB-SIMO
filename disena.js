@@ -178,7 +178,7 @@ function bolsoSVG() {
   const telaBase = (S.telaBase !== 'igual' && TELA[S.telaBase]) || tela;
   // En el paso de tachuelas el bolso se ve más grande (zoom) para colocarlas bien.
   const zoom = typeof PASOS !== 'undefined' && PASOS[paso] && PASOS[paso].id === 'tachuelas';
-  const VW = 440, VH = 400, maxW = zoom ? 400 : 260, maxH = zoom ? 330 : 220;
+  const VW = 440; let VH = 400; const maxW = zoom ? 400 : 260, maxH = zoom ? 330 : 220;
   const k = Math.min(maxW / tam.w, maxH / tam.h);
   const W = Math.round(tam.w * k), H = Math.round(tam.h * k);
   const x = Math.round((VW - W) / 2), y = Math.round((zoom ? 35 : 58) + (maxH - H) / 2);
@@ -196,53 +196,52 @@ function bolsoSVG() {
   defs += rellenoTela(telaBase, 'fBase', x, y, W, H) + rellenoTela(tela, 'fTapa', x - 9, y - 6, W + 18, H + 12);
 
   let atras = '', delante = '';
-  // Flecos
+  // Flecos: 15 cm de largo a escala del bolso. La zona del fleco se rellena con una textura de fibras
+  // finas y verticales en los tonos reales de cada fleco; puntas desiguales y algunos hilos sueltos.
   if (S.flecos !== 'ninguno') {
-    // Flecos como en los bolsos de la web: muchos hilos finos que caen por su peso, en 4 tonos
-    // (los oscuros detrás, los claros delante) y, en los de brillo, hilo metálico mezclado con destellos.
-    const f = FLECO[S.flecos], tonos = f.c, maxY = VH - 8;
-    const hilo = (x1, y1, cx, cy, x2, y2, col, w, op = 1) =>
-      `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${Math.min(maxY, y2).toFixed(1)}" stroke="${col}" stroke-width="${w.toFixed(2)}" fill="none" stroke-linecap="round" opacity="${op}"/>`;
-    const capas = (n, fn) => { // devuelve los hilos ordenados de oscuro (fondo) a claro (frente)
-      const porTono = tonos.map(() => '');
-      for (let i = 0; i < n; i++) {
-        const t = Math.min(tonos.length - 1, Math.floor(Math.pow(R(), .8) * tonos.length));
-        const brillo = f.brillo && R() < .18;
-        porTono[brillo ? tonos.length - 1 : t] += fn(brillo ? f.brillo[R() < .7 ? 0 : 1] : tonos[t], brillo);
-      }
-      return porTono.join('');
-    };
-    const destellos = (n, zona) => {
-      if (!f.brillo) return '';
-      let s = '';
-      for (let i = 0; i < n; i++) { const [px, py] = zona(); s += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${(.5 + R() * .7).toFixed(2)}" fill="${f.brillo[1]}" opacity="${(.5 + R() * .5).toFixed(2)}"/>`; }
+    const f = FLECO[S.flecos], tonos = f.c, cmU = W / tam.w, LARGO = 15 * cmU;
+    const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+    const tabla = k => { const v = tonos.map(t => rgb(t)[k].toFixed(3)); return [v[0], v[0], v[1], v[2], v[3], v[3]].join(' '); };
+    defs += `<filter id="fibra" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="${(1.1 / Math.max(1, cmU / 8)).toFixed(3)} 0.011" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1" result="g"/>
+      <feComponentTransfer in="g" result="c"><feFuncR type="table" tableValues="${tabla(0)}"/><feFuncG type="table" tableValues="${tabla(1)}"/><feFuncB type="table" tableValues="${tabla(2)}"/></feComponentTransfer>
+      ${f.brillo ? `<feTurbulence type="fractalNoise" baseFrequency="1.6 0.04" numOctaves="1" seed="11" result="b"/>
+      <feColorMatrix in="b" type="matrix" values="0 0 0 0 ${rgb(f.brillo[0])[0]} 0 0 0 0 ${rgb(f.brillo[0])[1]} 0 0 0 0 ${rgb(f.brillo[0])[2]} 4.5 0 0 0 -2.6" result="bm"/>
+      <feComposite in="bm" in2="c" operator="over"/>` : ''}
+    </filter>
+    <linearGradient id="flecoSombraV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".25" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".06"/></linearGradient>`;
+    const puntas = (x0, x1, yBase, dir) => { // borde de abajo irregular, como las puntas de los hilos
+      let s = '', n = Math.max(6, Math.round(Math.abs(x1 - x0) / 1.1));
+      for (let i = 0; i <= n; i++) { const px = x0 + (x1 - x0) * i / n, larga = R() < .25 ? cmU * (.6 + R() * .9) : R() * cmU * .45; s += `L${px.toFixed(1)} ${(yBase - (i % 2 ? larga : larga * .3)).toFixed(1)}`; }
       return s;
     };
+    const sueltos = (n, fn) => { let s = ''; for (let i = 0; i < n; i++) { const [a, b, c2, d2] = fn(); s += `<path d="M${a.toFixed(1)} ${b.toFixed(1)}Q${((a + c2) / 2 + (R() - .5) * 4).toFixed(1)} ${((b + d2) / 2).toFixed(1)} ${c2.toFixed(1)} ${d2.toFixed(1)}" stroke="${tonos[1 + Math.floor(R() * 3)]}" stroke-width="${(.45 + R() * .45).toFixed(2)}" fill="none" opacity=".9"/>`; } return s; };
+    let abajo = 0;
     if (S.flecosForma === 'tapa') {
-      // Delante: cosidos en la parte baja de la tapa y cayendo sobre la base hasta pasar el bolso.
-      const y0 = fb - Math.round(flapH * .22), largo = Math.min(maxY - y0, (bot - y0) * 1.45);
-      const n = Math.round(W * 1.5);
-      delante += `<rect x="${x + 1}" y="${y0 - 3}" width="${W - 2}" height="6" fill="${tonos[1]}"/>`
-        + capas(n, (col, br) => {
-          const sx = x + 2 + R() * (W - 4), len = largo * (.82 + R() * .18), dx = (R() - .5) * 10;
-          return hilo(sx, y0, sx + dx * .2, y0 + len * .5, sx + dx, y0 + len, col, br ? .7 : .55 + R() * .5, .88);
-        })
-        + `<rect x="${x + 1}" y="${y0 - 3}" width="${W - 2}" height="2" fill="rgba(255,255,255,.18)"/>`
-        + destellos(Math.round(W * .5), () => [x + R() * W, y0 + R() * largo * .9]);
+      // Delante: cosidos en la parte baja de la tapa, caen 15 cm sobre la base.
+      const y0 = fb - Math.round(flapH * .2), yb = y0 + LARGO;
+      const silueta = `M${x + 1} ${y0}L${x + W - 1} ${y0}L${x + W + 1} ${yb - cmU}${puntas(x + W + 1, x - 1, yb, -1)}Z`;
+      defs += `<clipPath id="cfD"><path d="${silueta}"/></clipPath>`;
+      delante += `<g clip-path="url(#cfD)"><rect x="${x - 3}" y="${y0}" width="${W + 6}" height="${LARGO + 4}" filter="url(#fibra)"/><rect x="${x - 3}" y="${y0}" width="${W + 6}" height="${LARGO + 4}" fill="url(#flecoSombraV)"/></g>`
+        + sueltos(Math.round(W / 6), () => { const a = x + R() * W; return [a, y0 + LARGO * (.4 + R() * .5), a + (R() - .5) * 6, yb + R() * cmU * .8]; })
+        + `<rect x="${x + 1}" y="${y0 - 3}" width="${W - 2}" height="6" rx="1" fill="${tonos[0]}"/><rect x="${x + 1}" y="${y0 - 3}" width="${W - 2}" height="1.6" fill="rgba(255,255,255,.18)"/>`;
+      abajo = yb + cmU;
     } else {
-      // Laterales: cosidos a lo largo de cada lado, salen un poco hacia fuera y caen por debajo del bolso.
-      const top = y + 4, alto = H - 8, largoBase = Math.min(H * .75, maxY - bot - 4);
-      [-1, 1].forEach(lado => {
-        const bx = lado < 0 ? x + 2 : x + W - 2;
-        atras += capas(Math.round(alto * 3.8), (col, br) => {
-          const sy = top + R() * alto, caida = (bot - sy) + largoBase * (.45 + R() * .55);
-          const fuera = lado * (2 + Math.pow(R(), .8) * 34);   // abanico: se abren hacia fuera al caer
-          const ondea = (R() - .5) * 8;
-          return hilo(bx, sy, bx + lado * (3 + R() * 8) + ondea, sy + Math.min(28, caida * .2), bx + fuera, sy + caida, col, br ? .7 : .55 + R() * .5, .85);
-        });
-        atras += destellos(Math.round(alto * 1.2), () => [bx + lado * (4 + R() * 38), top + R() * (alto + largoBase * .8)]);
+      // Laterales: cosidos a lo largo de cada lado; caen 15 cm y se abren un poco hacia fuera.
+      [-1, 1].forEach((lado, j) => {
+        const bx = lado < 0 ? x + 2 : x + W - 2, top = y + 3, yb = bot + LARGO;
+        const ancho = cmU * 3.6, sale = cmU * .4;
+        const ext = bx + lado * ancho, int = bx - lado * cmU * .6;
+        const silueta = `M${bx} ${top}L${(bx + lado * sale).toFixed(1)} ${top}C${(bx + lado * ancho * .55).toFixed(1)} ${(top + LARGO * .45).toFixed(1)} ${ext.toFixed(1)} ${(yb - LARGO * .4).toFixed(1)} ${ext.toFixed(1)} ${(yb - cmU).toFixed(1)}${puntas(ext, int, yb, -lado)}L${int.toFixed(1)} ${bot}Z`;
+        const gx = Math.min(ext, int) - 2, gw = Math.abs(ext - int) + 4;
+        defs += `<clipPath id="cfL${j}"><path d="${silueta}"/></clipPath><linearGradient id="flecoSombraH${j}" x1="${lado < 0 ? 1 : 0}" y1="0" x2="${lado < 0 ? 0 : 1}" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".4"/><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".08"/></linearGradient>`;
+        atras += `<g clip-path="url(#cfL${j})"><rect x="${gx}" y="${top}" width="${gw}" height="${yb - top + 4}" filter="url(#fibra)"/><rect x="${gx}" y="${top}" width="${gw}" height="${yb - top + 4}" fill="url(#flecoSombraH${j})"/><rect x="${gx}" y="${top}" width="${gw}" height="${yb - top + 4}" fill="url(#flecoSombraV)"/></g>`
+          + sueltos(14, () => { const a = ext - lado * R() * cmU * .8, b = top + (yb - top) * (.35 + R() * .45); return [a, b, a + lado * R() * cmU * .9, b + cmU * (2 + R() * 3)]; });
       });
+      abajo = bot + LARGO + cmU;
     }
+    if (!zoom) VH = Math.max(VH, Math.ceil(abajo + 14));
   }
   // Enganches
   if (S.enganches) {
