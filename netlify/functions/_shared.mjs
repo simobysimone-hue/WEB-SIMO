@@ -152,7 +152,20 @@ export async function enviarPedidoBolsos({ session, piId }) {
   const bolsos = [...Array(n).keys()].map(i => [m[`b${i + 1}`], m[`b${i + 1}_detalle`], m[`b${i + 1}_nota`] ? `Nota: ${m[`b${i + 1}_nota`]}` : ''].filter(Boolean).join('\n   '));
   const direccion = [sh.name, a.line1, `${a.postal_code || ''} ${a.city || ''}`.trim(), a.state, a.country, sh.phone ? `Tel. ${sh.phone}` : ''].filter(Boolean).join('\n');
   const texto = `Pedido pagado (${total} EUR) · zona ${m.zona || ''}\n\nBOLSOS\n${bolsos.map((b, i) => `${i + 1}. ${b}`).join('\n')}\n\nENVIAR A\n${direccion}\n\nEmail: ${email}\nPago Stripe: ${piId || session.id}`;
-  await mailer.sendMail({ from: `"SIMO web" <${MAIL_USER}>`, to: MAIL_USER, replyTo: email || undefined, subject: `Nuevo pedido de bolsos · ${sh.name || email}`, text: texto });
+  // Fotos de los diseños guardadas al crear el pago (Netlify Blobs): van dentro del correo y como adjuntos.
+  let fotos = [];
+  try { const { getStore } = await import('@netlify/blobs'); fotos = ((await getStore('pedidos').get(session.id, { type: 'json' })) || {}).fotos || []; }
+  catch (e) { console.error('No se pudieron leer las fotos del pedido:', e.message); }
+  const attachments = [];
+  fotos.forEach((f, i) => { if (f) attachments.push({ filename: `bolso-${i + 1}.jpg`, content: f.split(',')[1], encoding: 'base64', contentType: 'image/jpeg', cid: `bolso${i + 1}@simo` }); });
+  const html = `<div style="font-family:Arial,sans-serif;color:#111;max-width:640px">
+    <h2 style="margin:0 0 6px">Nuevo pedido pagado · ${escHtml(total)} €</h2><p style="margin:0 0 16px;color:#555">Zona de envío: ${escHtml(m.zona || '')}</p>
+    ${bolsos.map((b, i) => `<div style="border:1px solid #ddd;border-radius:8px;padding:12px;margin:0 0 12px">
+      <p style="margin:0 0 8px"><b>Bolso ${i + 1}</b><br>${escHtml(b).replace(/\n\s*/g, '<br>')}</p>
+      ${fotos[i] ? `<img src="cid:bolso${i + 1}@simo" alt="Diseño del bolso ${i + 1}" style="width:100%;max-width:600px;border-radius:6px;display:block">` : '<p style="color:#999">(sin foto del diseño)</p>'}</div>`).join('')}
+    <h3 style="margin:18px 0 6px">Enviar a</h3><p style="margin:0">${escHtml(direccion).replace(/\n/g, '<br>')}</p>
+    <p style="color:#555;margin-top:14px">Email: ${escHtml(email)}<br>Pago Stripe: ${escHtml(piId || session.id)}</p></div>`;
+  await mailer.sendMail({ from: `"SIMO web" <${MAIL_USER}>`, to: MAIL_USER, replyTo: email || undefined, subject: `Nuevo pedido de bolsos · ${sh.name || email}`, text: texto, html, attachments });
   if (email) await mailer.sendMail({ from: `"SIMO" <${MAIL_USER}>`, to: email, subject: 'Tu pedido SIMO está confirmado',
     text: `Hola ${sh.name || ''}:\n\nHemos recibido tu pedido y el pago (${total} EUR). Cada bolso se hace a mano: tardaremos de 2 a 3 semanas y te avisaremos cuando salga.\n\nEnvío a:\n${direccion}\n\nGracias por elegir SIMO.\nSIMO · Madrid` });
   if (piId) { try { await stripePost(`payment_intents/${piId}`, { metadata: { emailed: '1' } }); } catch {} }

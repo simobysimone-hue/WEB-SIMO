@@ -417,7 +417,31 @@ function resumenHTML() {
   <p class="nota">Cada bolso se hace a mano y solo por encargo. El envío se calcula en el carrito según el destino.</p>
   <p class="toast" id="aviso" hidden></p>`;
 }
-function anadirAlCarrito() {
+/* Foto (JPEG) del dibujo del bolso para el correo de SIMO: se pasan las imágenes del SVG a datos
+   incrustados (si no, el navegador no las pinta al convertir) y se dibuja en un canvas a doble tamaño. */
+const fotosCache = {};
+async function aDataURL(url) {
+  if (fotosCache[url]) return fotosCache[url];
+  const b = await (await fetch(url)).blob();
+  return fotosCache[url] = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); });
+}
+async function fotoDiseno() {
+  const svgEl = $('lienzo').querySelector('svg'); if (!svgEl) return null;
+  const vb = svgEl.viewBox.baseVal, esc2 = 3;
+  let txt = new XMLSerializer().serializeToString(svgEl);
+  const hrefs = [...new Set([...txt.matchAll(/href="([^"#][^"]*)"/g)].map(m => m[1]).filter(h => !h.startsWith('data:')))];
+  for (const h of hrefs) { try { txt = txt.split(`href="${h}"`).join(`href="${await aDataURL(h)}"`); } catch {} }
+  txt = txt.replace('<svg ', `<svg width="${vb.width * esc2}" height="${vb.height * esc2}" `);
+  const img = new Image();
+  img.src = URL.createObjectURL(new Blob([txt], { type: 'image/svg+xml' }));
+  await img.decode();
+  const c = document.createElement('canvas'); c.width = vb.width * esc2; c.height = vb.height * esc2;
+  const x = c.getContext('2d'); x.fillStyle = '#F2EFEA'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0);
+  URL.revokeObjectURL(img.src);
+  return c.toDataURL('image/jpeg', .82);
+}
+
+async function anadirAlCarrito() {
   const L = lineas(), totalVista = L.reduce((s, [, p]) => s + p, 0);
   const d = { tamano: S.tamano, tela: S.tela, telaBase: S.telaBase, cinta: S.cinta, cintaPos: S.cintaPos, flecos: S.flecos, flecosForma: S.flecosForma,
     tachas: S.tachas.map(t => ({ id: t.id, fx: +t.fx.toFixed(3), fy: +t.fy.toFixed(3) })), enganches: S.enganches, cremallera: S.cremallera, medW: S.medW, medH: S.medH };
@@ -425,10 +449,13 @@ function anadirAlCarrito() {
   try { precio = precioBolso(d); } catch (e) { $('aviso').textContent = 'Revisa el diseño: falta algo por elegir.'; $('aviso').hidden = false; return; }
   if (Math.abs(precio - totalVista) > .001) console.warn('Precio distinto entre el diseñador y la tarifa', precio, totalVista);
   const svg = $('lienzo').innerHTML.replace(/<text[^>]*>[^<]*<\/text>/g, ''); // sin las medidas
+  $('anadir').disabled = true;
+  let foto = null;
+  try { foto = await fotoDiseno(); } catch (e) { console.warn('No se pudo hacer la foto del diseño', e); }
   const item = { id: Date.now().toString(36), d, precio, cantidad: 1, titulo: `Bolso SIMO · ${tamActual().nombre}`,
-    lineas: L.map(([n]) => n), detalles: detalles(), notas: ($('nota-bolso').value || '').trim(), svg };
+    lineas: L.map(([n]) => n), detalles: detalles(), notas: ($('nota-bolso').value || '').trim(), svg, foto };
   const c = leerCarrito(); c.push(item);
-  if (!guardarCarrito(c)) { $('aviso').textContent = 'No se ha podido guardar el carrito en este navegador.'; $('aviso').hidden = false; return; }
+  if (!guardarCarrito(c)) { $('aviso').textContent = 'No se ha podido guardar el carrito en este navegador.'; $('aviso').hidden = false; $('anadir').disabled = false; return; }
   pintarCarritoCuenta();
   $('paso').innerHTML = `<p class="num">Añadido</p><h2>¡Tu SIMO está en el carrito!</h2>
     <p class="ayuda">${esc(item.titulo)} · ${eur(precio)}. Puedes diseñar otro o terminar el pedido.</p>

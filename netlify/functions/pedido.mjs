@@ -1,4 +1,5 @@
 import { json, stripePost } from './_shared.mjs';
+import { getStore } from '@netlify/blobs';
 import { precioBolso, ENVIOS, zonaEnvio } from '../../precios.mjs';
 
 /* Carrito de bolsos → pago en Stripe Checkout.
@@ -54,6 +55,12 @@ export default async (req) => {
           address: { line1: corto(e.direccion, 200), postal_code: corto(e.cp, 20), city: corto(e.ciudad, 100), state: corto(e.provincia, 100), country: corto(e.pais, 2).toUpperCase() } }
       }
     });
+    // Fotos de los diseños (para el correo de SIMO): se guardan en Netlify Blobs con el id del pago.
+    const fotos = bolsos.map(b => typeof b.foto === 'string' && b.foto.startsWith('data:image/jpeg;base64,') && /^[A-Za-z0-9+/=]+$/.test(b.foto.slice(23)) && b.foto.length < 900000 ? b.foto : null);
+    if (fotos.some(Boolean)) {
+      try { await getStore('pedidos').setJSON(session.id, { fotos, creado: new Date().toISOString() }); }
+      catch (e) { console.error('No se pudieron guardar las fotos del pedido:', e.message); }
+    }
     return json({ url: session.url });
   } catch (err) {
     if (String(err.message).startsWith('DISENO_INVALIDO')) return json({ error: 'DISENO_INVALIDO' }, 400);

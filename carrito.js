@@ -67,7 +67,7 @@ $('pagar').addEventListener('click', async () => {
   const btn = $('pagar'); btn.disabled = true;
   try {
     const res = await fetch('/api/pedido', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ envio: datos, bolsos: leer().map(it => ({ d: it.d, cantidad: it.cantidad, notas: it.notas || '', detalles: it.detalles || [] })) }) });
+      body: JSON.stringify({ envio: datos, bolsos: leer().map(it => ({ d: it.d, cantidad: it.cantidad, notas: it.notas || '', detalles: it.detalles || [], foto: it.foto || null })) }) });
     const r = await res.json().catch(() => ({}));
     if (!res.ok || !r.url) throw new Error(r.error || 'ERROR');
     location.href = r.url;
