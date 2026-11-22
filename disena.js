@@ -50,16 +50,20 @@ const POS_CINTA = [
   { id: 'centrado', nombre: 'Centrada' }, { id: 'doble', nombre: 'Doble (precio × 2)' }
 ];
 const FLECOS = [
+  // c: tonos de los hilos (de oscuro a claro), sacados de las fotos de los flecos. brillo: hilo metálico mezclado.
   { grupo: 'Flecos', extra: 5, items: [
-    { id: 'turquesas', nombre: 'Turquesas', c: ['#2BB5AD'] }, { id: 'blancos', nombre: 'Blancos', c: ['#F3F1EC'] },
-    { id: 'marrones', nombre: 'Marrones', c: ['#5A3220'] }, { id: 'negros', nombre: 'Negros', c: ['#141414'] },
-    { id: 'rojos', nombre: 'Rojos', c: ['#9E1B32'] }, { id: 'grises', nombre: 'Grises', c: ['#9A9DA1'] } ] },
+    { id: 'turquesas', nombre: 'Turquesas', c: ['#16706d', '#22918c', '#33a8a2', '#5cc4bd'] },
+    { id: 'blancos', nombre: 'Blancos', c: ['#9a9b99', '#bfc0be', '#d9dad8', '#f1f1ef'] },
+    { id: 'marrones', nombre: 'Marrones', c: ['#3e201e', '#5a3532', '#704844', '#8e6460'] },
+    { id: 'negros', nombre: 'Negros', c: ['#141418', '#1f1f25', '#2c2c33', '#45454d'] },
+    { id: 'rojos', nombre: 'Rojos', c: ['#5e0c14', '#7c1824', '#962430', '#b23c48'] },
+    { id: 'grises', nombre: 'Grises', c: ['#2f2f33', '#55565a', '#7a7b7f', '#a9aaae'] } ] },
   { grupo: 'Con brillo', extra: 8, items: [
-    { id: 'negro-plata', nombre: 'Negro y plata', c: ['#161616', '#C9CCD1'] },
-    { id: 'beige-dorado', nombre: 'Beige y dorado', c: ['#CDBB94', '#E2C26B'] } ] }
+    { id: 'negro-plata', nombre: 'Negro y plata', c: ['#121212', '#1e1e1e', '#2b2b2b', '#3a3a3a'], brillo: ['#d8dadd', '#ffffff'] },
+    { id: 'beige-dorado', nombre: 'Beige y dorado', c: ['#8b7c66', '#a99a82', '#c4b597', '#d9cbac'], brillo: ['#e6c66a', '#fff1b8'] } ] }
 ];
 const FORMA_FLECOS = [
-  { id: 'lados', nombre: 'Finos, a los lados' }, { id: 'anudados', nombre: 'Anudados, a los lados' }, { id: 'abajo', nombre: 'Finos, por abajo' }
+  { id: 'lados', nombre: 'En los laterales' }, { id: 'tapa', nombre: 'Delante, en la tapa' }
 ];
 const TACHUELAS = [
   { id: 'redonda-plata', nombre: 'Redondas plateadas', forma: 'redonda', metal: 'plata' },
@@ -177,33 +181,49 @@ function bolsoSVG() {
   let atras = '', delante = '';
   // Flecos
   if (S.flecos !== 'ninguno') {
-    const f = FLECO[S.flecos], cols = f.c;
-    const linea = (x1, y1, x2, y2, cx, i, w = 1.1) => `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}Q${cx.toFixed(1)} ${((y1 + y2) / 2).toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${cols[i % cols.length]}" stroke-width="${w}" fill="none" stroke-linecap="round" opacity=".95"/>`;
-    if (S.flecosForma === 'abajo') {
-      const n = Math.round(W / 3.2);
+    // Flecos como en los bolsos de la web: muchos hilos finos que caen por su peso, en 4 tonos
+    // (los oscuros detrás, los claros delante) y, en los de brillo, hilo metálico mezclado con destellos.
+    const f = FLECO[S.flecos], tonos = f.c, maxY = VH - 8;
+    const hilo = (x1, y1, cx, cy, x2, y2, col, w, op = 1) =>
+      `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${Math.min(maxY, y2).toFixed(1)}" stroke="${col}" stroke-width="${w.toFixed(2)}" fill="none" stroke-linecap="round" opacity="${op}"/>`;
+    const capas = (n, fn) => { // devuelve los hilos ordenados de oscuro (fondo) a claro (frente)
+      const porTono = tonos.map(() => '');
       for (let i = 0; i < n; i++) {
-        const sx = x + 6 + (W - 12) * i / (n - 1), len = H - flapH + 34 + R() * 26, dx = (R() - .5) * 14;
-        delante += linea(sx, fb - 2, sx + dx, fb + len, sx + dx * .3, i, 1.2);
+        const t = Math.min(tonos.length - 1, Math.floor(Math.pow(R(), .8) * tonos.length));
+        const brillo = f.brillo && R() < .18;
+        porTono[brillo ? tonos.length - 1 : t] += fn(brillo ? f.brillo[R() < .7 ? 0 : 1] : tonos[t], brillo);
       }
-      delante += `<rect x="${x + 4}" y="${fb - 5}" width="${W - 8}" height="6" rx="1.5" fill="${cols[0]}" opacity=".9"/>`;
+      return porTono.join('');
+    };
+    const destellos = (n, zona) => {
+      if (!f.brillo) return '';
+      let s = '';
+      for (let i = 0; i < n; i++) { const [px, py] = zona(); s += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${(.5 + R() * .7).toFixed(2)}" fill="${f.brillo[1]}" opacity="${(.5 + R() * .5).toFixed(2)}"/>`; }
+      return s;
+    };
+    if (S.flecosForma === 'tapa') {
+      // Delante: cosidos en la parte baja de la tapa y cayendo sobre la base hasta pasar el bolso.
+      const y0 = fb - Math.round(flapH * .22), largo = Math.min(maxY - y0, (bot - y0) * 1.45);
+      const n = Math.round(W * 1.5);
+      delante += `<rect x="${x + 1}" y="${y0 - 3}" width="${W - 2}" height="6" fill="${tonos[1]}"/>`
+        + capas(n, (col, br) => {
+          const sx = x + 2 + R() * (W - 4), len = largo * (.82 + R() * .18), dx = (R() - .5) * 10;
+          return hilo(sx, y0, sx + dx * .2, y0 + len * .5, sx + dx, y0 + len, col, br ? .7 : .55 + R() * .5, .88);
+        })
+        + `<rect x="${x + 1}" y="${y0 - 3}" width="${W - 2}" height="2" fill="rgba(255,255,255,.18)"/>`
+        + destellos(Math.round(W * .5), () => [x + R() * W, y0 + R() * largo * .9]);
     } else {
-      const top = y + 10, alto = H - 18;
+      // Laterales: cosidos a lo largo de cada lado, salen un poco hacia fuera y caen por debajo del bolso.
+      const top = y + 4, alto = H - 8, largoBase = Math.min(H * .75, maxY - bot - 4);
       [-1, 1].forEach(lado => {
-        const bx = lado < 0 ? x + 3 : x + W - 3;
-        if (S.flecosForma === 'anudados') {
-          const nb = Math.max(4, Math.round(alto / 22));
-          for (let b = 0; b < nb; b++) {
-            const ky = top + alto * (b + .5) / nb, kx = bx + lado * 10;
-            for (let i = 0; i < 9; i++) atras += linea(kx, ky, kx + lado * (6 + R() * 18), ky + 70 + R() * 40, kx + lado * 4, i + b, 1.1);
-            atras += `<path d="M${bx} ${ky - 4}L${kx} ${ky}L${bx} ${ky + 4}" stroke="${cols[0]}" stroke-width="2.4" fill="none"/><circle cx="${kx}" cy="${ky}" r="3.2" fill="${cols[0]}"/>`;
-          }
-        } else {
-          const n = Math.round(alto / 2.3);
-          for (let i = 0; i < n; i++) {
-            const sy = top + alto * i / (n - 1), len = 60 + R() * 55 + (sy - top) * .25;
-            atras += linea(bx, sy, bx + lado * (8 + R() * 26), sy + len, bx + lado * 3, i, 1);
-          }
-        }
+        const bx = lado < 0 ? x + 2 : x + W - 2;
+        atras += capas(Math.round(alto * 3.8), (col, br) => {
+          const sy = top + R() * alto, caida = (bot - sy) + largoBase * (.45 + R() * .55);
+          const fuera = lado * (2 + Math.pow(R(), .8) * 34);   // abanico: se abren hacia fuera al caer
+          const ondea = (R() - .5) * 8;
+          return hilo(bx, sy, bx + lado * (3 + R() * 8) + ondea, sy + Math.min(28, caida * .2), bx + fuera, sy + caida, col, br ? .7 : .55 + R() * .5, .85);
+        });
+        atras += destellos(Math.round(alto * 1.2), () => [bx + lado * (4 + R() * 38), top + R() * (alto + largoBase * .8)]);
       });
     }
   }
@@ -292,11 +312,13 @@ function bolsoSVG() {
   }
 
   // Medidas
-  const md = (S.flecos !== 'ninguno' && S.flecosForma === 'abajo') ? 62 : 22;
-  const mdx = (S.flecos !== 'ninguno' && S.flecosForma !== 'abajo') ? 62 : 22;
+  // Con flecos delante, el ancho se marca encima del bolso; con flecos laterales, el alto se separa más.
+  const flecosDelante = S.flecos !== 'ninguno' && S.flecosForma === 'tapa';
+  const ly = flecosDelante ? y - 18 : bot + 22, ty = flecosDelante ? y - 24 : bot + 38;
+  const mdx = (S.flecos !== 'ninguno' && !flecosDelante) ? 70 : 22;
   const medidas = `<g stroke="#555" stroke-width="1" fill="#555" font-family="Poppins, sans-serif" font-size="12">
-    <line x1="${x}" y1="${bot + md}" x2="${x + W}" y2="${bot + md}"/><line x1="${x}" y1="${bot + md - 4}" x2="${x}" y2="${bot + md + 4}"/><line x1="${x + W}" y1="${bot + md - 4}" x2="${x + W}" y2="${bot + md + 4}"/>
-    <text x="${x + W / 2}" y="${bot + md + 16}" text-anchor="middle" stroke="none">${cm(tam.w)} cm</text>
+    <line x1="${x}" y1="${ly}" x2="${x + W}" y2="${ly}"/><line x1="${x}" y1="${ly - 4}" x2="${x}" y2="${ly + 4}"/><line x1="${x + W}" y1="${ly - 4}" x2="${x + W}" y2="${ly + 4}"/>
+    <text x="${x + W / 2}" y="${ty}" text-anchor="middle" stroke="none">${cm(tam.w)} cm</text>
     <line x1="${x + W + mdx}" y1="${y}" x2="${x + W + mdx}" y2="${bot}"/><line x1="${x + W + mdx - 4}" y1="${y}" x2="${x + W + mdx + 4}" y2="${y}"/><line x1="${x + W + mdx - 4}" y1="${bot}" x2="${x + W + mdx + 4}" y2="${bot}"/>
     <text x="${x + W + mdx + 8}" y="${y + H / 2}" stroke="none" transform="rotate(90 ${x + W + mdx + 8} ${y + H / 2})" text-anchor="middle">${tam.plegado ? `${cm(tam.h)} cm (${tam.plegado} abierto)` : `${cm(tam.h)} cm`}</text></g>`;
 
@@ -325,7 +347,7 @@ const muestraCinta = c => {
   const uri = encodeURIComponent(svg).replace(/'/g, '%27').replace(/\(/g, '%28').replace(/\)/g, '%29');
   return `background:url(data:image/svg+xml,${uri}) center/cover,#E9E6E1`;
 };
-const muestraFleco = f => `background:repeating-linear-gradient(90deg,${f.c[0]} 0 1.5px,transparent 1.5px 3px${f.c[1] ? `,${f.c[1]} 3px 4.5px,transparent 4.5px 6px` : ''}),#F6F5F3`;
+const muestraFleco = f => `background:url(img/fleco-${f.id}.webp) center/cover,${f.c[1]}`;
 const precioTxt = (n, mas = true) => n ? (mas ? '+' : '') + eur(n) : 'Sin coste extra';
 
 function opcion({ pulsado, deshab, muestra, nombre, pr, nota, txt, dato, valor }) {
@@ -368,7 +390,7 @@ const PASOS = [
     html: () => `<p class="grupo">¿Centrada o doble?</p>${chips(POS_CINTA, S.cintaPos, 'cintapos')}`
       + `<div class="opts" style="margin-top:14px">${opcion({ pulsado: S.cinta === 'ninguna', muestra: 'background:#F6F5F3', nombre: 'Sin cinta', dato: 'cinta', valor: 'ninguna' })}</div>`
       + CINTAS.map(g => `<p class="grupo">${g.grupo}<em>${precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => { const c = CINTA[i.id]; return opcion({ pulsado: S.cinta === c.id, muestra: muestraCinta(c), nombre: c.nombre, dato: 'cinta', valor: c.id }); }).join('')}</div>`).join('') },
-  { id: 'flecos', titulo: 'Añade flecos', ayuda: 'Elige el color y cómo van colocados.', listo: () => true,
+  { id: 'flecos', titulo: 'Añade flecos', ayuda: 'Elige el color y si van en los laterales o delante, en la tapa.', listo: () => true,
     html: () => `<div class="opts">${opcion({ pulsado: S.flecos === 'ninguno', muestra: 'background:#F6F5F3', nombre: 'Sin flecos', dato: 'flecos', valor: 'ninguno' })}</div>`
       + FLECOS.map(g => `<p class="grupo">${g.grupo}<em>${precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => opcion({ pulsado: S.flecos === i.id, muestra: muestraFleco(i), nombre: i.nombre, dato: 'flecos', valor: i.id })).join('')}</div>`).join('')
       + (S.flecos !== 'ninguno' ? `<p class="grupo">¿Cómo van?</p>${chips(FORMA_FLECOS, S.flecosForma, 'flecosforma')}` : '') },
