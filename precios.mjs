@@ -21,12 +21,14 @@ export const TACH_INCLUIDAS = 15, TACH_BASE = 5, TACH_EXTRA = .15;
 export const DOS_TELAS = 2, ENGANCHES = 5, CREMALLERA = 10;
 export const MED_MIN = 15, MED_MAX = 60;
 
-/* Envíos: tarifa fija por zona (euros por pedido). null = todavía sin precio: no se puede pagar a esa zona.
-   PENDIENTE: SIMO tiene que dar estos precios. */
+/* Envíos: tarifa fija por zona (euros por pedido, IVA incluido). Basada en SendSeiPro · Correos Express Paq 24
+   (paquete < 1 kg) + 21 % IVA + combustible + recogida, con un pequeño margen.
+   null = todavía sin precio: no se puede pagar a esa zona (falta la tarifa internacional de SendSeiPro). */
 export const ENVIOS = {
-  peninsula: { nombre: 'España peninsular', precio: null },
-  baleares: { nombre: 'Islas Baleares', precio: null },
-  canarias: { nombre: 'Canarias, Ceuta y Melilla', precio: null, aduana: true },
+  peninsula: { nombre: 'España peninsular', precio: 5 },
+  baleares: { nombre: 'Islas Baleares', precio: 8 },
+  canarias: { nombre: 'Canarias', precio: 10, aduana: true },
+  ceutamelilla: { nombre: 'Ceuta y Melilla', precio: 22, aduana: true },
   europa: { nombre: 'Unión Europea', precio: null },
   mundo: { nombre: 'Resto del mundo', precio: null, aduana: true }
 };
@@ -36,7 +38,8 @@ export function zonaEnvio(pais, cp) {
   pais = String(pais || '').toUpperCase(); const c = String(cp || '').trim();
   if (pais === 'ES') {
     if (/^07/.test(c)) return 'baleares';
-    if (/^(35|38|51|52)/.test(c)) return 'canarias';
+    if (/^(35|38)/.test(c)) return 'canarias';
+    if (/^(51|52)/.test(c)) return 'ceutamelilla';
     return 'peninsula';
   }
   return PAISES_UE.includes(pais) ? 'europa' : 'mundo';

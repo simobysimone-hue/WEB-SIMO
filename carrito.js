@@ -39,7 +39,7 @@ function pintarTotales() {
   const precioEnvio = env.precio;
   $('totales').innerHTML = `<li><span>Bolsos (${c.reduce((s, i) => s + i.cantidad, 0)})</span><span>${eur(sub)}</span></li>
     <li><span>Envío · ${esc(env.nombre)}</span><span>${precioEnvio === null ? 'pendiente' : eur(precioEnvio)}</span></li>
-    ${env.aduana ? '<li><span style="font-size:12px;color:#555">Fuera de la UE o en Canarias pueden cobrarse aduanas o impuestos al recibirlo.</span><span></span></li>' : ''}
+    ${env.aduana ? '<li><span style="font-size:12px;color:#555">En Canarias, Ceuta, Melilla y fuera de la UE pueden cobrarse aduanas o impuestos al recibirlo.</span><span></span></li>' : ''}
     <li class="total"><span>Total</span><span>${eur(sub + (precioEnvio || 0))}</span></li>`;
   $('pagar').disabled = precioEnvio === null;
   if (precioEnvio === null) { $('aviso').textContent = 'Todavía no se puede pagar a esta zona: falta fijar el precio del envío.'; $('aviso').hidden = false; }
