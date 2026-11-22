@@ -1,11 +1,11 @@
 'use strict';
 /* ====== Opciones y precios (de la tarifa de SIMO) ====== */
 const TAMANOS = [
-  { id: '30x20', nombre: '30 × 20 cm', precio: 45, w: 30, h: 20, nota: 'El clásico', foto: 'img/tam-30x20.webp' },
-  { id: '35x17', nombre: '35 × 17 cm', precio: 45, w: 35, h: 17, tapa: .8, nota: 'Alargado', foto: 'img/tam-35x17.webp' },
+  { id: '30x20', nombre: '30 × 20 cm', precio: 45, w: 30, h: 20, nota: 'El clásico' },
+  { id: '35x17', nombre: '35 × 17 cm', precio: 45, w: 35, h: 17, tapa: .8, nota: 'Alargado' },
   // 30 × 40 cm abierto: se dobla por la mitad, así que se dibuja como 30 × 20 cm.
-  { id: '30x40', nombre: '30 × 40 cm', precio: 55, w: 30, h: 20, plegado: 40, nota: 'Grande · incluye cremallera interna · se dobla por la mitad', foto: 'img/tam-30x40.webp' },
-  { id: 'ordenador', nombre: 'Ordenador o iPad', precio: 57, w: 34, h: 25, nota: 'Funda a medida: te pediremos tus medidas', foto: 'img/tam-ordenador.webp' }
+  { id: '30x40', nombre: '30 × 40 cm', precio: 55, w: 30, h: 20, plegado: 40, nota: 'Grande · incluye cremallera interna · se dobla por la mitad' },
+  { id: 'ordenador', nombre: 'Ordenador o iPad', precio: 57, w: 34, h: 25, nota: 'Funda a medida: escribe las medidas de tu ordenador o iPad', medidas: true }
 ];
 const TELAS = [
   { grupo: 'Algodón', extra: 0, items: [
@@ -89,8 +89,21 @@ const TAM = Object.fromEntries(TAMANOS.map(t => [t.id, t]));
 
 /* ====== Estado ====== */
 const S = { tamano: null, tela: null, cinta: 'ninguna', cintaPos: 'medio', flecos: 'ninguno', flecosForma: 'lados',
-  tachuelas: [], tachPos: 'arriba', enganches: false, cremallera: false };
+  tachuelas: [], tachPos: 'arriba', enganches: false, cremallera: false, medW: '', medH: '' };
 let paso = 0, maxPaso = 0;
+
+/* Medidas escritas (funda de ordenador o iPad): de 15 a 60 cm. */
+const MED_MIN = 15, MED_MAX = 60;
+const num = v => parseFloat(String(v).replace(',', '.'));
+const medOk = v => num(v) >= MED_MIN && num(v) <= MED_MAX;
+const medidasOk = () => medOk(S.medW) && medOk(S.medH);
+const cm = v => String(Math.round(num(v) * 10) / 10).replace('.', ',');
+/* Tamaño que se dibuja y se cobra: el elegido, o el de ordenador con las medidas escritas. */
+function tamActual() {
+  const t = TAM[S.tamano];
+  if (!t || !t.medidas) return t;
+  return medidasOk() ? { ...t, w: num(S.medW), h: num(S.medH), nombre: `Funda ${cm(S.medW)} × ${cm(S.medH)} cm` } : { ...t, nombre: 'Funda de ordenador o iPad' };
+}
 
 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: n % 1 ? 2 : 0 }).format(n);
 const $ = id => document.getElementById(id);
@@ -98,7 +111,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
 function lineas() {
   const L = [];
-  if (S.tamano) L.push([`Tamaño ${TAM[S.tamano].nombre}`, TAM[S.tamano].precio]);
+  if (S.tamano) { const t = tamActual(); L.push([t.medidas ? t.nombre : `Tamaño ${t.nombre}`, t.precio]); }
   if (S.tela) { const t = TELA[S.tela]; L.push([`Tela ${t.nombre.toLowerCase()} (${t.grupo.split(' ')[0].toLowerCase()})`, t.extra]); }
   if (S.cinta !== 'ninguna') { const c = CINTA[S.cinta]; const x = S.cintaPos === 'dos' ? 2 : 1; L.push([`Cinta ${c.nombre.toLowerCase()}${x === 2 ? ' × 2' : ''}`, c.extra * x]); }
   if (S.flecos !== 'ninguno') { const f = FLECO[S.flecos]; L.push([`Flecos ${f.nombre.toLowerCase()}`, f.extra]); }
@@ -156,7 +169,7 @@ function estrella(cx, cy, r) {
 }
 
 function bolsoSVG() {
-  const tam = TAM[S.tamano] || TAM['30x20'];
+  const tam = tamActual() || TAM['30x20'];
   const tela = TELA[S.tela] || { color: '#D8D3CB', vacia: true };
   const VW = 440, VH = 400, maxW = 260, maxH = 220;
   const k = Math.min(maxW / tam.w, maxH / tam.h);
@@ -277,9 +290,9 @@ function bolsoSVG() {
   const mdx = (S.flecos !== 'ninguno' && S.flecosForma !== 'abajo') ? 62 : 22;
   const medidas = `<g stroke="#555" stroke-width="1" fill="#555" font-family="Poppins, sans-serif" font-size="12">
     <line x1="${x}" y1="${bot + md}" x2="${x + W}" y2="${bot + md}"/><line x1="${x}" y1="${bot + md - 4}" x2="${x}" y2="${bot + md + 4}"/><line x1="${x + W}" y1="${bot + md - 4}" x2="${x + W}" y2="${bot + md + 4}"/>
-    <text x="${x + W / 2}" y="${bot + md + 16}" text-anchor="middle" stroke="none">${tam.w} cm</text>
+    <text x="${x + W / 2}" y="${bot + md + 16}" text-anchor="middle" stroke="none">${cm(tam.w)} cm</text>
     <line x1="${x + W + mdx}" y1="${y}" x2="${x + W + mdx}" y2="${bot}"/><line x1="${x + W + mdx - 4}" y1="${y}" x2="${x + W + mdx + 4}" y2="${y}"/><line x1="${x + W + mdx - 4}" y1="${bot}" x2="${x + W + mdx + 4}" y2="${bot}"/>
-    <text x="${x + W + mdx + 8}" y="${y + H / 2}" stroke="none" transform="rotate(90 ${x + W + mdx + 8} ${y + H / 2})" text-anchor="middle">${tam.plegado ? `${tam.h} cm (${tam.plegado} abierto)` : `${tam.h} cm`}</text></g>`;
+    <text x="${x + W + mdx + 8}" y="${y + H / 2}" stroke="none" transform="rotate(90 ${x + W + mdx + 8} ${y + H / 2})" text-anchor="middle">${tam.plegado ? `${cm(tam.h)} cm (${tam.plegado} abierto)` : `${cm(tam.h)} cm`}</text></g>`;
 
   const vacio = !S.tamano || !S.tela ? `<text x="${VW / 2}" y="${y + H / 2}" text-anchor="middle" font-family="Poppins, sans-serif" font-size="13" fill="#6b6b6b">${!S.tamano ? 'Elige el tamaño para empezar' : 'Ahora elige la tela'}</text>` : '';
   return `<svg viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${atras}${cuerpo}${tapa}${tach}${delante}${S.tamano ? medidas : ''}${vacio}</svg>`;
@@ -287,7 +300,7 @@ function bolsoSVG() {
 
 function pintarBolso() {
   $('lienzo').innerHTML = bolsoSVG();
-  const t = TAM[S.tamano], tela = TELA[S.tela];
+  const t = tamActual(), tela = TELA[S.tela];
   $('lienzo').setAttribute('aria-label', 'Vista de tu bolso: ' + [t && t.nombre, tela && 'tela ' + tela.nombre.toLowerCase()].filter(Boolean).join(', '));
 }
 
@@ -308,9 +321,25 @@ function opcion({ pulsado, deshab, muestra, nombre, pr, nota, txt, dato, valor }
     ${muestra !== undefined ? `<span class="mues" style="${muestra}" aria-hidden="true"></span>` : ''}<b>${esc(nombre)}</b>${pr ? `<span class="pr">${pr}</span>` : ''}${nota ? `<span class="nt">${esc(nota)}</span>` : ''}</button>`;
 }
 const chips = (lista, actual, dato) => `<div class="chips">${lista.map(o => `<button type="button" class="chip" aria-pressed="${o.id === actual}" data-${dato}="${o.id}">${esc(o.nombre)}</button>`).join('')}</div>`;
+function miniTam(t) {
+  const k = Math.min(54 / t.w, 54 / t.h), w = t.w * k, h = t.h * k, tapa = t.tapa || .6;
+  return `<svg width="60" height="60" viewBox="0 0 60 60" aria-hidden="true"><rect x="${(60 - w) / 2}" y="${(60 - h) / 2}" width="${w}" height="${h}" rx="3" fill="#E2DED6" stroke="#111"/><line x1="${(60 - w) / 2}" y1="${(60 - h) / 2 + h * tapa}" x2="${(60 + w) / 2}" y2="${(60 - h) / 2 + h * tapa}" stroke="#111"/></svg>`;
+}
+const medidasHTML = () => `<div class="medidas">
+  <p class="grupo">Medidas de tu ordenador o iPad</p>
+  <div class="med-campos">
+    <label>Ancho (cm)<input id="med-w" type="text" inputmode="decimal" placeholder="Ej.: 33" value="${esc(S.medW)}" aria-describedby="med-ayuda"></label>
+    <span aria-hidden="true">×</span>
+    <label>Alto (cm)<input id="med-h" type="text" inputmode="decimal" placeholder="Ej.: 23" value="${esc(S.medH)}" aria-describedby="med-ayuda"></label>
+  </div>
+  <p class="nt" id="med-ayuda">Mide tu ordenador o iPad y escribe el ancho y el alto en centímetros (de ${MED_MIN} a ${MED_MAX}). El dibujo del bolso tomará estas medidas.</p>
+</div>`;
 const PASOS = [
-  { id: 'tamano', titulo: 'Elige el tamaño', ayuda: 'El tamaño marca el precio de partida.', listo: () => !!S.tamano, falta: 'Elige un tamaño para seguir.',
-    html: () => `<div class="opts lista">${TAMANOS.map(t => `<button type="button" class="opt txt" aria-pressed="${S.tamano === t.id}" data-tamano="${t.id}"><span class="tam"><img src="${t.foto}" alt="Bolso SIMO de ${t.nombre}" loading="lazy"><span><b>${t.nombre}</b><br><span class="pr">${eur(t.precio)}</span><br><span class="nt">${t.nota}</span></span></span></button>`).join('')}</div>` },
+  { id: 'tamano', titulo: 'Elige el tamaño', ayuda: 'El tamaño marca el precio de partida.',
+    listo: () => !!S.tamano && (!TAM[S.tamano].medidas || medidasOk()),
+    get falta() { return S.tamano && TAM[S.tamano].medidas ? `Escribe el ancho y el alto (de ${MED_MIN} a ${MED_MAX} cm) para seguir.` : 'Elige un tamaño para seguir.'; },
+    html: () => `<div class="opts anchas">${TAMANOS.map(t => `<button type="button" class="opt txt" aria-pressed="${S.tamano === t.id}" data-tamano="${t.id}"><span class="tam">${miniTam(t)}<span><b>${t.nombre}</b><br><span class="pr">${eur(t.precio)}</span><br><span class="nt">${t.nota}</span></span></span></button>`).join('')}</div>`
+      + (S.tamano && TAM[S.tamano].medidas ? medidasHTML() : '') },
   { id: 'tela', titulo: 'Elige la tela', ayuda: 'La tela es la de todo el bolso: tapa y base.', listo: () => !!S.tela, falta: 'Elige una tela para seguir.',
     html: () => TELAS.map(g => `<p class="grupo">${g.grupo}<em>${g.extra === undefined ? '' : precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => { const t = TELA[i.id]; return opcion({ pulsado: S.tela === t.id, muestra: muestraTela(t), nombre: t.nombre, pr: g.extra === undefined ? precioTxt(t.extra) : '', dato: 'tela', valor: t.id }); }).join('')}</div>`).join('') },
   { id: 'cinta', titulo: 'Añade una cinta', ayuda: 'La cinta va sobre la tapa. Elige el tipo y después dónde va.', listo: () => true,
@@ -377,7 +406,7 @@ function cambiar(fn) { fn(); pintarBolso(); pintarPrecio(); const y = window.scr
 $('paso').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   const d = b.dataset;
-  if (d.tamano) cambiar(() => { S.tamano = d.tamano; });
+  if (d.tamano) { cambiar(() => { S.tamano = d.tamano; }); if (TAM[d.tamano].medidas && !medidasOk()) $('med-w')?.focus(); }
   else if (d.tela) cambiar(() => { S.tela = d.tela; });
   else if (d.cinta) cambiar(() => { S.cinta = d.cinta; });
   else if (d.cintapos) cambiar(() => { S.cintaPos = d.cintapos; });
@@ -386,6 +415,17 @@ $('paso').addEventListener('click', e => {
   else if (d.tach) cambiar(() => { const i = S.tachuelas.indexOf(d.tach); if (i >= 0) S.tachuelas.splice(i, 1); else if (S.tachuelas.length < 3) S.tachuelas.push(d.tach); });
   else if (d.tachpos) cambiar(() => { S.tachPos = d.tachpos; });
   else if (d.extra) cambiar(() => { S[d.extra] = !S[d.extra]; });
+});
+// Medidas de la funda: se actualizan el dibujo, el precio y la flecha sin volver a pintar el paso (no se pierde el cursor).
+$('paso').addEventListener('input', e => {
+  if (e.target.id !== 'med-w' && e.target.id !== 'med-h') return;
+  if (e.target.id === 'med-w') S.medW = e.target.value.trim(); else S.medH = e.target.value.trim();
+  e.target.setAttribute('aria-invalid', e.target.value.trim() && !medOk(e.target.value) ? 'true' : 'false');
+  pintarBolso(); pintarPrecio();
+  const P = PASOS[paso];
+  $('siguiente').disabled = !P.listo();
+  $('falta').hidden = P.listo();
+  $('falta').textContent = P.falta;
 });
 $('progreso').addEventListener('click', e => { const b = e.target.closest('[data-ir]'); if (b && !b.disabled) { paso = +b.dataset.ir; pintarPaso(); subir(); } });
 $('siguiente').addEventListener('click', () => { if (!PASOS[paso].listo()) return; paso++; maxPaso = Math.max(maxPaso, paso); pintarPaso(); subir(); });

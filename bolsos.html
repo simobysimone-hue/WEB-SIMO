@@ -85,11 +85,14 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .opt.txt{padding:12px}
 .opt.txt[aria-pressed="true"]{padding:11px}
 .tam{display:flex;align-items:center;gap:12px}
-.opts.lista{grid-template-columns:1fr}
-.tam{gap:16px}
-.tam img{flex:0 0 auto;width:168px;height:110px;object-fit:cover;border-radius:4px;display:block}
-.tam b{font-size:15px}
-@media (max-width:480px){.tam img{width:120px;height:80px}.tam{gap:12px}}
+.tam svg{flex:0 0 auto}
+.medidas{margin-top:6px}
+.med-campos{display:flex;align-items:flex-end;gap:10px}
+.med-campos label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;flex:1;max-width:160px}
+.med-campos input{border:1px solid #111;border-radius:6px;padding:10px;font:16px Poppins,system-ui,sans-serif;background:#fff;width:100%;box-sizing:border-box}
+.med-campos input[aria-invalid="true"]{border-color:#5E1727;outline:2px solid #5E1727}
+.med-campos span{font-size:20px;padding-bottom:10px}
+.medidas .nt{font-size:12px;color:#666;margin:8px 0 0}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:1px solid #111;border-radius:6px;padding:8px 14px;background:#fff;font:500 13px Poppins,system-ui,sans-serif;cursor:pointer}
 .chip[aria-pressed="true"]{background:#0B0B0C;color:#F6F5F3}
