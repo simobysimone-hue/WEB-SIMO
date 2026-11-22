@@ -1,10 +1,11 @@
 'use strict';
 /* ====== Opciones y precios (de la tarifa de SIMO) ====== */
 const TAMANOS = [
-  { id: '30x20', nombre: '30 × 20 cm', precio: 45, w: 30, h: 20, nota: 'El clásico' },
-  { id: '35x17', nombre: '35 × 17 cm', precio: 45, w: 35, h: 17, nota: 'Alargado' },
-  { id: '35x45', nombre: '35 × 45 cm', precio: 55, w: 35, h: 45, nota: 'Grande · incluye cremallera interna' },
-  { id: 'ordenador', nombre: 'Ordenador o iPad', precio: 57.5, w: 34, h: 25, nota: 'Precio medio (50 a 65 €): te pediremos tus medidas' }
+  { id: '30x20', nombre: '30 × 20 cm', precio: 45, w: 30, h: 20, nota: 'El clásico', foto: 'img/tam-30x20.webp' },
+  { id: '35x17', nombre: '35 × 17 cm', precio: 45, w: 35, h: 17, tapa: .8, nota: 'Alargado', foto: 'img/tam-35x17.webp' },
+  // 30 × 40 cm abierto: se dobla por la mitad, así que se dibuja como 30 × 20 cm.
+  { id: '30x40', nombre: '30 × 40 cm', precio: 55, w: 30, h: 20, plegado: 40, nota: 'Grande · incluye cremallera interna · se dobla por la mitad', foto: 'img/tam-30x40.webp' },
+  { id: 'ordenador', nombre: 'Ordenador o iPad', precio: 57, w: 34, h: 25, nota: 'Funda a medida: te pediremos tus medidas', foto: 'img/tam-ordenador.webp' }
 ];
 const TELAS = [
   { grupo: 'Algodón', extra: 0, items: [
@@ -103,7 +104,7 @@ function lineas() {
   if (S.flecos !== 'ninguno') { const f = FLECO[S.flecos]; L.push([`Flecos ${f.nombre.toLowerCase()}`, f.extra]); }
   if (S.tachuelas.length) L.push([`Tachuelas (${S.tachuelas.length} ${S.tachuelas.length === 1 ? 'tipo' : 'tipos'})`, PRECIO_TACHUELAS]);
   if (S.enganches) L.push(['Enganches', 5]);
-  if (S.cremallera || S.tamano === '35x45') L.push(['Cremallera interna', S.tamano === '35x45' ? 0 : 10]);
+  if (S.cremallera || S.tamano === '30x40') L.push(['Cremallera interna', S.tamano === '30x40' ? 0 : 10]);
   return L;
 }
 function pintarPrecio() {
@@ -161,7 +162,7 @@ function bolsoSVG() {
   const k = Math.min(maxW / tam.w, maxH / tam.h);
   const W = Math.round(tam.w * k), H = Math.round(tam.h * k);
   const x = Math.round((VW - W) / 2), y = Math.round(58 + (maxH - H) / 2);
-  const flapH = Math.round(H * (tam.h > tam.w ? .46 : .62));
+  const flapH = Math.round(H * (tam.tapa || .62));
   const fb = y + flapH, bot = y + H;
   const R = rnd(7);
   let defs = `<linearGradient id="luz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient>
@@ -221,7 +222,7 @@ function bolsoSVG() {
   if (tela.grano || tela.img) cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#fff" filter="url(#grano)" clip-path="url(#clipBolso)"/>`;
   cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="7" fill="url(#luz)" stroke="rgba(0,0,0,.28)" stroke-width="1"/>`;
   // Cremallera (bajo la tapa)
-  if (S.cremallera || S.tamano === '35x45') {
+  if (S.cremallera || S.tamano === '30x40') {
     cuerpo += `<line x1="${x + 10}" y1="${fb + 7}" x2="${x + W - 10}" y2="${fb + 7}" stroke="#1d1d1d" stroke-width="3.2"/><line x1="${x + 10}" y1="${fb + 7}" x2="${x + W - 10}" y2="${fb + 7}" stroke="#8b8b8b" stroke-width="1.2" stroke-dasharray="1.6 1.6"/>`
       + `<rect x="${x + 14}" y="${fb + 4}" width="6" height="6" rx="1" fill="url(#g-plata)"/><rect x="${x + 15.5}" y="${fb + 9}" width="3" height="10" rx="1.5" fill="url(#g-plata)"/>`;
   }
@@ -258,13 +259,17 @@ function bolsoSVG() {
       if (t.forma === 'disco') return `<circle cx="${px}" cy="${py}" r="7.5" fill="${g}" stroke="rgba(0,0,0,.3)" stroke-width=".6"/><circle cx="${px - 3}" cy="${py - 3.5}" r=".9" fill="#555"/><circle cx="${px + 3}" cy="${py - 3.5}" r=".9" fill="#555"/>`;
       return `<circle cx="${px}" cy="${py + 1}" r="4.6" fill="rgba(0,0,0,.25)"/><circle cx="${px}" cy="${py}" r="4.4" fill="${g}"/>`;
     };
-    const esquina = (by) => {
+    // k: si la base es baja (p. ej. 35 × 17, tapa de 4/5), el grupo de abajo se aplasta para que quepa.
+    const esquina = (by, k = 1) => {
       let s = '';
-      grupo.forEach(([dx, dy], j) => { s += pinta(x + 14 + dx, by + dy, j); s += pinta(x + W - 14 - dx, by + dy, j); });
+      grupo.forEach(([dx, dy], j) => { s += pinta(x + 14 + dx, by + dy * k, j); s += pinta(x + W - 14 - dx, by + dy * k, j); });
       return s;
     };
     if (S.tachPos !== 'abajo') tach += esquina(fb - 36);
-    if (S.tachPos !== 'arriba') tach += esquina(Math.min(bot - 34, fb + 16));
+    if (S.tachPos !== 'arriba') {
+      const libre = bot - fb - 16;
+      tach += libre >= 26 ? esquina(Math.min(bot - 34, fb + 16)) : esquina(fb + 10, Math.max(0, (bot - fb - 16) / 26));
+    }
   }
 
   // Medidas
@@ -274,7 +279,7 @@ function bolsoSVG() {
     <line x1="${x}" y1="${bot + md}" x2="${x + W}" y2="${bot + md}"/><line x1="${x}" y1="${bot + md - 4}" x2="${x}" y2="${bot + md + 4}"/><line x1="${x + W}" y1="${bot + md - 4}" x2="${x + W}" y2="${bot + md + 4}"/>
     <text x="${x + W / 2}" y="${bot + md + 16}" text-anchor="middle" stroke="none">${tam.w} cm</text>
     <line x1="${x + W + mdx}" y1="${y}" x2="${x + W + mdx}" y2="${bot}"/><line x1="${x + W + mdx - 4}" y1="${y}" x2="${x + W + mdx + 4}" y2="${y}"/><line x1="${x + W + mdx - 4}" y1="${bot}" x2="${x + W + mdx + 4}" y2="${bot}"/>
-    <text x="${x + W + mdx + 8}" y="${y + H / 2}" stroke="none" transform="rotate(90 ${x + W + mdx + 8} ${y + H / 2})" text-anchor="middle">${tam.h} cm</text></g>`;
+    <text x="${x + W + mdx + 8}" y="${y + H / 2}" stroke="none" transform="rotate(90 ${x + W + mdx + 8} ${y + H / 2})" text-anchor="middle">${tam.plegado ? `${tam.h} cm (${tam.plegado} abierto)` : `${tam.h} cm`}</text></g>`;
 
   const vacio = !S.tamano || !S.tela ? `<text x="${VW / 2}" y="${y + H / 2}" text-anchor="middle" font-family="Poppins, sans-serif" font-size="13" fill="#6b6b6b">${!S.tamano ? 'Elige el tamaño para empezar' : 'Ahora elige la tela'}</text>` : '';
   return `<svg viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${atras}${cuerpo}${tapa}${tach}${delante}${S.tamano ? medidas : ''}${vacio}</svg>`;
@@ -303,14 +308,9 @@ function opcion({ pulsado, deshab, muestra, nombre, pr, nota, txt, dato, valor }
     ${muestra !== undefined ? `<span class="mues" style="${muestra}" aria-hidden="true"></span>` : ''}<b>${esc(nombre)}</b>${pr ? `<span class="pr">${pr}</span>` : ''}${nota ? `<span class="nt">${esc(nota)}</span>` : ''}</button>`;
 }
 const chips = (lista, actual, dato) => `<div class="chips">${lista.map(o => `<button type="button" class="chip" aria-pressed="${o.id === actual}" data-${dato}="${o.id}">${esc(o.nombre)}</button>`).join('')}</div>`;
-function miniTam(t) {
-  const k = Math.min(54 / t.w, 54 / t.h), w = t.w * k, h = t.h * k;
-  return `<svg width="60" height="60" viewBox="0 0 60 60" aria-hidden="true"><rect x="${(60 - w) / 2}" y="${(60 - h) / 2}" width="${w}" height="${h}" rx="3" fill="#E2DED6" stroke="#111"/><line x1="${(60 - w) / 2}" y1="${(60 - h) / 2 + h * .6}" x2="${(60 + w) / 2}" y2="${(60 - h) / 2 + h * .6}" stroke="#111"/></svg>`;
-}
-
 const PASOS = [
   { id: 'tamano', titulo: 'Elige el tamaño', ayuda: 'El tamaño marca el precio de partida.', listo: () => !!S.tamano, falta: 'Elige un tamaño para seguir.',
-    html: () => `<div class="opts anchas">${TAMANOS.map(t => `<button type="button" class="opt txt" aria-pressed="${S.tamano === t.id}" data-tamano="${t.id}"><span class="tam">${miniTam(t)}<span><b>${t.nombre}</b><br><span class="pr">${eur(t.precio)}</span><br><span class="nt">${t.nota}</span></span></span></button>`).join('')}</div>` },
+    html: () => `<div class="opts lista">${TAMANOS.map(t => `<button type="button" class="opt txt" aria-pressed="${S.tamano === t.id}" data-tamano="${t.id}"><span class="tam"><img src="${t.foto}" alt="Bolso SIMO de ${t.nombre}" loading="lazy"><span><b>${t.nombre}</b><br><span class="pr">${eur(t.precio)}</span><br><span class="nt">${t.nota}</span></span></span></button>`).join('')}</div>` },
   { id: 'tela', titulo: 'Elige la tela', ayuda: 'La tela es la de todo el bolso: tapa y base.', listo: () => !!S.tela, falta: 'Elige una tela para seguir.',
     html: () => TELAS.map(g => `<p class="grupo">${g.grupo}<em>${g.extra === undefined ? '' : precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => { const t = TELA[i.id]; return opcion({ pulsado: S.tela === t.id, muestra: muestraTela(t), nombre: t.nombre, pr: g.extra === undefined ? precioTxt(t.extra) : '', dato: 'tela', valor: t.id }); }).join('')}</div>`).join('') },
   { id: 'cinta', titulo: 'Añade una cinta', ayuda: 'La cinta va sobre la tapa. Elige el tipo y después dónde va.', listo: () => true,
@@ -330,8 +330,8 @@ const PASOS = [
       }).join('')}</div>${S.tachuelas.length ? `<p class="grupo">¿Dónde van?</p>${chips(POS_TACH, S.tachPos, 'tachpos')}` : '<p class="ayuda" style="margin-top:12px">Si no quieres tachuelas, pasa al siguiente paso.</p>'}` },
   { id: 'extras', titulo: 'Extras', ayuda: 'Detalles que puedes añadir.', listo: () => true,
     html: () => `<div class="opts anchas">${EXTRAS.map(e => {
-        const incl = e.id === 'cremallera' && S.tamano === '35x45';
-        return opcion({ pulsado: incl || S[e.id], deshab: incl, txt: true, nombre: e.nombre, pr: incl ? 'Incluida en 35 × 45 cm' : '+' + eur(e.precio), nota: e.nota, dato: 'extra', valor: e.id });
+        const incl = e.id === 'cremallera' && S.tamano === '30x40';
+        return opcion({ pulsado: incl || S[e.id], deshab: incl, txt: true, nombre: e.nombre, pr: incl ? 'Incluida en 30 × 40 cm' : '+' + eur(e.precio), nota: e.nota, dato: 'extra', valor: e.id });
       }).join('')}</div>` },
   { id: 'resumen', titulo: 'Tu SIMO', ayuda: 'Revisa tu diseño y déjanos tus datos para hacerlo.', listo: () => true, html: resumenHTML }
 ];
