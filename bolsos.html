@@ -86,6 +86,11 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .opt.txt[aria-pressed="true"]{padding:11px}
 .tam{display:flex;align-items:center;gap:12px}
 .tam svg{flex:0 0 auto}
+.partes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.parte{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid #CFCAC2;border-radius:6px;background:#F6F5F3;padding:10px 14px;font:500 13px Poppins,system-ui,sans-serif;color:#555;cursor:pointer}
+.parte b{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:20px;letter-spacing:.5px;color:#111}
+.parte[aria-selected="true"]{background:#0B0B0C;border-color:#0B0B0C;color:#d8d8d8}
+.parte[aria-selected="true"] b{color:#F6F5F3}
 .medidas{margin-top:6px}
 .med-campos{display:flex;align-items:flex-end;gap:10px}
 .med-campos label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;flex:1;max-width:160px}

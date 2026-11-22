@@ -13,14 +13,15 @@ const TELAS = [
     { id: 'algodon-gris', nombre: 'Gris', color: '#7E8184', tejido: true },
     { id: 'algodon-negra', nombre: 'Negra', color: '#1E1E20', tejido: true } ] },
   { grupo: 'Polipiel · efecto cuero', extra: 5, items: [
-    { id: 'negra', nombre: 'Negra', img: 'img/telas/negra.jpg', color: '#1B1B1D' },
-    { id: 'roja', nombre: 'Roja', img: 'img/tela-roja.webp', color: '#C7253C' },
-    { id: 'turquesa', nombre: 'Turquesa', img: 'img/telas/turquesa.jpg', color: '#2FB7AE' },
-    { id: 'marron', nombre: 'Marrón', img: 'img/telas/marron.jpg', color: '#7A4024' },
-    { id: 'polipiel-blanca', nombre: 'Blanca', color: '#EDEAE5', grano: true },
-    { id: 'roja-oscura', nombre: 'Roja oscura', img: 'img/telas/roja-oscura.jpg', color: '#A3243A' },
-    { id: 'beige', nombre: 'Beige', img: 'img/telas/beige.jpg', color: '#CFC6AE' },
-    { id: 'plateada', nombre: 'Plateada', img: 'img/telas/plateada.jpg', color: '#B9BBBE' } ] },
+    // Negra: foto real de la polipiel. Resto: su color con el mismo grano de cuero (img/grano-cuero.webp).
+    { id: 'negra', nombre: 'Negra', img: 'img/tela-polipiel-negra.webp', color: '#1B1B1D' },
+    { id: 'roja', nombre: 'Roja', color: '#B81D35', cuero: true },
+    { id: 'turquesa', nombre: 'Turquesa', color: '#1FA8A1', cuero: true },
+    { id: 'marron', nombre: 'Marrón', color: '#6A3820', cuero: true },
+    { id: 'polipiel-blanca', nombre: 'Blanca', color: '#EAE7E2', cuero: true },
+    { id: 'roja-oscura', nombre: 'Roja oscura', color: '#8C1D32', cuero: true },
+    { id: 'beige', nombre: 'Beige', color: '#C9BC9C', cuero: true },
+    { id: 'plateada', nombre: 'Plateada', color: '#B4B6BA', cuero: true, brillo: true } ] },
   { grupo: 'Estampadas', items: [
     { id: 'serpiente-dorada', nombre: 'Serpiente dorada', img: 'img/telas/serpiente-dorada.jpg', color: '#9C8350', extra: 5 },
     { id: 'serpiente', nombre: 'Serpiente', img: 'img/telas/serpiente.jpg', color: '#6E6A62', extra: 5 },
@@ -89,7 +90,10 @@ const TAM = Object.fromEntries(TAMANOS.map(t => [t.id, t]));
 
 /* ====== Estado ====== */
 const S = { tamano: null, tela: null, cinta: 'ninguna', cintaPos: 'medio', flecos: 'ninguno', flecosForma: 'lados',
-  tachuelas: [], tachPos: 'arriba', enganches: false, cremallera: false, medW: '', medH: '' };
+  tachuelas: [], tachPos: 'arriba', enganches: false, cremallera: false, medW: '', medH: '',
+  telaBase: 'igual', telaParte: 'tapa' };
+const EXTRA_DOS_TELAS = 2; // tapa y base de distinta tela
+const dosTelas = () => S.tela && S.telaBase !== 'igual' && S.telaBase !== S.tela;
 let paso = 0, maxPaso = 0;
 
 /* Medidas escritas (funda de ordenador o iPad): de 15 a 60 cm. */
@@ -112,7 +116,16 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 function lineas() {
   const L = [];
   if (S.tamano) { const t = tamActual(); L.push([t.medidas ? t.nombre : `Tamaño ${t.nombre}`, t.precio]); }
-  if (S.tela) { const t = TELA[S.tela]; L.push([`Tela ${t.nombre.toLowerCase()} (${t.grupo.split(' ')[0].toLowerCase()})`, t.extra]); }
+  if (S.tela) {
+    const t = TELA[S.tela], tipo = x => x.grupo.split(' ')[0].toLowerCase();
+    if (!dosTelas()) L.push([`Tela ${t.nombre.toLowerCase()} (${tipo(t)})`, t.extra]);
+    else {
+      // Distinta tela en tapa y base: se cobra la tela más cara una vez + 2 €.
+      const b = TELA[S.telaBase];
+      L.push([`Tapa ${t.nombre.toLowerCase()} (${tipo(t)}) · base ${b.nombre.toLowerCase()} (${tipo(b)})`, Math.max(t.extra, b.extra)]);
+      L.push(['Tapa y base de distinta tela', EXTRA_DOS_TELAS]);
+    }
+  }
   if (S.cinta !== 'ninguna') { const c = CINTA[S.cinta]; const x = S.cintaPos === 'dos' ? 2 : 1; L.push([`Cinta ${c.nombre.toLowerCase()}${x === 2 ? ' × 2' : ''}`, c.extra * x]); }
   if (S.flecos !== 'ninguno') { const f = FLECO[S.flecos]; L.push([`Flecos ${f.nombre.toLowerCase()}`, f.extra]); }
   if (S.tachuelas.length) L.push([`Tachuelas (${S.tachuelas.length} ${S.tachuelas.length === 1 ? 'tipo' : 'tipos'})`, PRECIO_TACHUELAS]);
@@ -158,6 +171,8 @@ function patronCinta(c, id) {
 
 function rellenoTela(t, id, x, y, w, h) {
   if (t.img) return `<pattern id="${id}" patternUnits="userSpaceOnUse" x="${x}" y="${y}" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${t.color}"/><image href="${t.img}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice"/></pattern>`;
+  // Polipiel de color: color liso + grano de cuero real fundido encima (overlay) y, si es plateada, un brillo.
+  if (t.cuero) return `<pattern id="${id}" patternUnits="userSpaceOnUse" x="${x}" y="${y}" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${t.color}"/><image href="img/grano-cuero.webp" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice" style="mix-blend-mode:overlay" opacity="${t.color > '#C' ? .7 : 1}"/>${t.brillo ? `<rect width="${w}" height="${h}" fill="url(#brilloMetal)"/>` : ''}</pattern>`;
   if (t.tejido) return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="4" height="4"><rect width="4" height="4" fill="${t.color}"/><path d="M0 1h4M0 3h4" stroke="rgba(0,0,0,.07)" stroke-width=".8"/><path d="M1 0v4M3 0v4" stroke="rgba(255,255,255,.06)" stroke-width=".8"/></pattern>`;
   return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="10" height="10"><rect width="10" height="10" fill="${t.color}"/></pattern>`;
 }
@@ -171,6 +186,7 @@ function estrella(cx, cy, r) {
 function bolsoSVG() {
   const tam = tamActual() || TAM['30x20'];
   const tela = TELA[S.tela] || { color: '#D8D3CB', vacia: true };
+  const telaBase = (S.telaBase !== 'igual' && TELA[S.telaBase]) || tela;
   const VW = 440, VH = 400, maxW = 260, maxH = 220;
   const k = Math.min(maxW / tam.w, maxH / tam.h);
   const W = Math.round(tam.w * k), H = Math.round(tam.h * k);
@@ -182,10 +198,11 @@ function bolsoSVG() {
     <linearGradient id="sombraTapa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
     <radialGradient id="suelo"><stop offset="0" stop-color="#000" stop-opacity=".28"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
     <filter id="grano" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .16"/></feComponentTransfer><feComposite in2="SourceGraphic" operator="in"/></filter>
+    <linearGradient id="brilloMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".35" stop-color="#fff" stop-opacity=".05"/><stop offset=".6" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient>
     <clipPath id="clipBolso"><rect x="${x}" y="${y}" width="${W}" height="${H}" rx="7"/></clipPath>
     <clipPath id="clipTapa"><path d="M${x} ${y + 7}q0-7 7-7h${W - 14}q7 0 7 7v${flapH - 9}q0 2-2 2h-${W - 4}q-2 0-2-2z"/></clipPath>`;
   Object.entries(METAL).forEach(([n, [a, b, c]]) => { defs += `<radialGradient id="g-${n}" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="${a}"/><stop offset=".45" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></radialGradient>`; });
-  defs += rellenoTela(tela, 'fBase', x, y, W, H) + rellenoTela(tela, 'fTapa', x - 9, y - 6, W + 18, H + 12);
+  defs += rellenoTela(telaBase, 'fBase', x, y, W, H) + rellenoTela(tela, 'fTapa', x - 9, y - 6, W + 18, H + 12);
 
   let atras = '', delante = '';
   // Flecos
@@ -232,7 +249,7 @@ function bolsoSVG() {
   // Cuerpo y tapa
   let cuerpo = `<ellipse cx="${x + W / 2}" cy="${bot + 8}" rx="${W * .56}" ry="10" fill="url(#suelo)"/>`;
   cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="7" fill="url(#fBase)"/>`;
-  if (tela.grano || tela.img) cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#fff" filter="url(#grano)" clip-path="url(#clipBolso)"/>`;
+  if (telaBase.tejido) cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#fff" filter="url(#grano)" clip-path="url(#clipBolso)"/>`;
   cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="7" fill="url(#luz)" stroke="rgba(0,0,0,.28)" stroke-width="1"/>`;
   // Cremallera (bajo la tapa)
   if ((S.cremallera || S.tamano === '30x40') && !tam.sinCremalleraVista) {
@@ -242,7 +259,7 @@ function bolsoSVG() {
   // sombra de la tapa sobre la base
   cuerpo += `<rect x="${x}" y="${fb}" width="${W}" height="16" fill="url(#sombraTapa)" clip-path="url(#clipBolso)"/>`;
   let tapa = `<g clip-path="url(#clipTapa)"><rect x="${x - 2}" y="${y - 2}" width="${W + 4}" height="${flapH + 4}" fill="url(#fTapa)"/>`;
-  if (tela.grano || tela.img) tapa += `<rect x="${x}" y="${y}" width="${W}" height="${flapH}" fill="#fff" filter="url(#grano)"/>`;
+  if (tela.tejido) tapa += `<rect x="${x}" y="${y}" width="${W}" height="${flapH}" fill="#fff" filter="url(#grano)"/>`;
   tapa += `<rect x="${x}" y="${y}" width="${W}" height="${flapH}" fill="url(#luz)"/>`;
   // Cinta
   if (S.cinta !== 'ninguna') {
@@ -305,7 +322,9 @@ function pintarBolso() {
 }
 
 /* ====== Pasos ====== */
-const muestraTela = t => t.img ? `background-image:url(${t.img})` : `background:${t.color}`;
+const muestraTela = t => t.img ? `background-image:url(${t.img})`
+  : t.cuero ? `background:${t.brillo ? 'linear-gradient(135deg,rgba(255,255,255,.35),rgba(255,255,255,0) 40%,rgba(255,255,255,.25) 65%,rgba(0,0,0,.1)),' : ''}url(img/grano-cuero.webp) center/300px,${t.color};background-blend-mode:${t.brillo ? 'normal,' : ''}overlay`
+  : `background:${t.color}`;
 const muestraCinta = c => {
   const [a, b = a] = c.c;
   if (c.tipo === 'cadena') return `background:repeating-radial-gradient(circle at 50% 50%,transparent 0 3px,${a} 3px 5px,transparent 5px 7px) 0 0/12px 12px,#2a2a2a`;
@@ -340,8 +359,18 @@ const PASOS = [
     get falta() { return S.tamano && TAM[S.tamano].medidas ? `Escribe el ancho y el alto (de ${MED_MIN} a ${MED_MAX} cm) para seguir.` : 'Elige un tamaño para seguir.'; },
     html: () => `<div class="opts anchas">${TAMANOS.map(t => `<button type="button" class="opt txt" aria-pressed="${S.tamano === t.id}" data-tamano="${t.id}"><span class="tam">${miniTam(t)}<span><b>${t.nombre}</b><br><span class="pr">${eur(t.precio)}</span><br><span class="nt">${t.nota}</span></span></span></button>`).join('')}</div>`
       + (S.tamano && TAM[S.tamano].medidas ? medidasHTML() : '') },
-  { id: 'tela', titulo: 'Elige la tela', ayuda: 'La tela es la de todo el bolso: tapa y base.', listo: () => !!S.tela, falta: 'Elige una tela para seguir.',
-    html: () => TELAS.map(g => `<p class="grupo">${g.grupo}<em>${g.extra === undefined ? '' : precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => { const t = TELA[i.id]; return opcion({ pulsado: S.tela === t.id, muestra: muestraTela(t), nombre: t.nombre, pr: g.extra === undefined ? precioTxt(t.extra) : '', dato: 'tela', valor: t.id }); }).join('')}</div>`).join('') },
+  { id: 'tela', titulo: 'Elige la tela', ayuda: `Elige la tela de la tapa y la de la base. Si las dos son iguales, el precio no cambia; si son distintas, +${eur(EXTRA_DOS_TELAS)}.`,
+    listo: () => !!S.tela, falta: 'Elige la tela de la tapa para seguir.',
+    html: () => {
+      const parte = S.telaParte, actual = parte === 'tapa' ? S.tela : S.telaBase;
+      const nom = id => TELA[id] ? TELA[id].nombre : '';
+      const tabs = `<div class="partes" role="tablist">
+        <button type="button" role="tab" class="parte" aria-selected="${parte === 'tapa'}" data-parte="tapa"><b>Tapa</b><span>${S.tela ? esc(nom(S.tela)) : 'Sin elegir'}</span></button>
+        <button type="button" role="tab" class="parte" aria-selected="${parte === 'base'}" data-parte="base"><b>Base</b><span>${S.telaBase === 'igual' ? 'Igual que la tapa' : esc(nom(S.telaBase))}</span></button></div>`;
+      const igual = parte === 'base' ? `<div class="opts">${opcion({ pulsado: S.telaBase === 'igual', muestra: S.tela ? muestraTela(TELA[S.tela]) : 'background:#F6F5F3', nombre: 'Igual que la tapa', pr: 'Mismo precio', dato: 'tela', valor: 'igual' })}</div>` : '';
+      const pista = parte === 'tapa' && S.tela ? `<p class="nt" style="margin:10px 0 0">¿Quieres otra tela para la base? Pulsa <b>Base</b>.</p>` : '';
+      return tabs + pista + igual + TELAS.map(g => `<p class="grupo">${g.grupo}<em>${g.extra === undefined ? '' : precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => { const t = TELA[i.id]; return opcion({ pulsado: actual === t.id, muestra: muestraTela(t), nombre: t.nombre, pr: g.extra === undefined ? precioTxt(t.extra) : '', dato: 'tela', valor: t.id }); }).join('')}</div>`).join('');
+    } },
   { id: 'cinta', titulo: 'Añade una cinta', ayuda: 'La cinta va sobre la tapa. Elige el tipo y después dónde va.', listo: () => true,
     html: () => `<div class="opts">${opcion({ pulsado: S.cinta === 'ninguna', muestra: 'background:#F6F5F3', nombre: 'Sin cinta', dato: 'cinta', valor: 'ninguna' })}</div>`
       + CINTAS.map(g => `<p class="grupo">${g.grupo}<em>${g.extra === undefined ? 'de +3 a +5 €' : precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => { const c = CINTA[i.id]; return opcion({ pulsado: S.cinta === c.id, muestra: muestraCinta(c), nombre: c.nombre, pr: g.extra === undefined ? precioTxt(c.extra) : '', dato: 'cinta', valor: c.id }); }).join('')}</div>`).join('')
@@ -407,7 +436,12 @@ $('paso').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   const d = b.dataset;
   if (d.tamano) { cambiar(() => { S.tamano = d.tamano; }); if (TAM[d.tamano].medidas && !medidasOk()) $('med-w')?.focus(); }
-  else if (d.tela) cambiar(() => { S.tela = d.tela; });
+  else if (d.parte) cambiar(() => { S.telaParte = d.parte; });
+  else if (d.tela) cambiar(() => {
+    if (S.telaParte === 'tapa') S.tela = d.tela;
+    else if (!S.tela && d.tela !== 'igual') { S.tela = d.tela; } // sin tapa aún: la primera elección vale para las dos
+    else S.telaBase = d.tela === S.tela ? 'igual' : d.tela;
+  });
   else if (d.cinta) cambiar(() => { S.cinta = d.cinta; });
   else if (d.cintapos) cambiar(() => { S.cintaPos = d.cintapos; });
   else if (d.flecos) cambiar(() => { S.flecos = d.flecos; });
