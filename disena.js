@@ -1,4 +1,5 @@
 'use strict';
+import { precioBolso } from './precios.mjs';
 /* ====== Opciones y precios (de la tarifa de SIMO) ====== */
 const TAMANOS = [
   { id: '30x20', nombre: '30 × 20 cm', precio: 45, w: 30, h: 20, nota: 'El clásico' },
@@ -392,31 +393,56 @@ const PASOS = [
         const incl = e.id === 'cremallera' && S.tamano === '30x40';
         return opcion({ pulsado: incl || S[e.id], deshab: incl, txt: true, nombre: e.nombre, pr: incl ? 'Incluida en 30 × 40 cm' : '+' + eur(e.precio), nota: e.nota, dato: 'extra', valor: e.id });
       }).join('')}</div>` },
-  { id: 'resumen', titulo: 'Tu SIMO', ayuda: 'Revisa tu diseño y déjanos tus datos para hacerlo.', listo: () => true, html: resumenHTML }
+  { id: 'resumen', titulo: 'Tu SIMO', ayuda: 'Revisa tu diseño y añádelo al carrito. Puedes diseñar y añadir varios bolsos antes de pagar.', listo: () => true, html: resumenHTML }
 ];
 
-function resumenHTML() {
-  const L = lineas(), total = L.reduce((s, [, p]) => s + p, 0);
+/* ====== Resumen y carrito ====== */
+const CARRITO = 'simo-carrito';
+const leerCarrito = () => { try { return JSON.parse(localStorage.getItem(CARRITO)) || []; } catch { return []; } };
+const guardarCarrito = c => { try { localStorage.setItem(CARRITO, JSON.stringify(c)); return true; } catch { return false; } };
+function detalles() {
   const extra = [];
   if (S.cinta !== 'ninguna') extra.push(['Dónde va la cinta', POS_CINTA.find(p => p.id === S.cintaPos).nombre]);
   if (S.flecos !== 'ninguno') extra.push(['Cómo van los flecos', FORMA_FLECOS.find(p => p.id === S.flecosForma).nombre]);
   if (S.tachas.length) extra.push(['Tachuelas', resumenTachas()]);
+  return extra;
+}
+function resumenHTML() {
+  const L = lineas(), total = L.reduce((s, [, p]) => s + p, 0);
   return `<ul class="res">${L.map(([n, p], i) => `<li><span>${esc(n)}</span><span>${p ? (i ? '+' : '') + eur(p) : 'incluido'}</span></li>`).join('')}
-    ${extra.map(([n, v]) => `<li><span>${esc(n)}</span><span>${esc(v)}</span></li>`).join('')}
+    ${detalles().map(([n, v]) => `<li><span>${esc(n)}</span><span>${esc(v)}</span></li>`).join('')}
     <li><span><b>Total del bolso</b></span><span><b>${eur(total)}</b> + envío</span></li></ul>
-  <form class="form" id="pedido" novalidate>
-    <label>Nombre<input name="nombre" autocomplete="name" required></label>
-    <label>Email<input name="email" type="email" autocomplete="email" required></label>
-    <label class="full">Dirección (calle, número, piso)<input name="direccion" autocomplete="street-address" required></label>
-    <label>Código postal<input name="cp" autocomplete="postal-code" inputmode="numeric" required></label>
-    <label>Ciudad<input name="ciudad" autocomplete="address-level2" required></label>
-    <label class="full">Teléfono (opcional, para el mensajero)<input name="telefono" type="tel" autocomplete="tel"></label>
-    <label class="full">Algo más para Simone (opcional)<textarea name="notas" rows="2"></textarea></label>
-    <label class="full check"><input type="checkbox" name="acepto" required> Entiendo que es un bolso a medida: tarda de 2 a 3 semanas y, por estar hecho a medida, no se puede devolver por desistimiento.</label>
-    <button type="submit" class="flecha full" style="justify-content:center">Enviar mi encargo</button>
-  </form>
-  <p class="nota">Envío de 5 a 15 € según destino (solo Península). De momento el encargo se envía por email: Simone te escribe para confirmar el precio final, el envío y el pago.</p>
+  <label class="nota-bolso">Algo más para Simone sobre este bolso (opcional)<textarea id="nota-bolso" rows="2" maxlength="300"></textarea></label>
+  <button type="button" class="flecha full anadir" id="anadir">Añadir al carrito</button>
+  <p class="nota">Cada bolso se hace a mano y solo por encargo. El envío se calcula en el carrito según el destino.</p>
   <p class="toast" id="aviso" hidden></p>`;
+}
+function anadirAlCarrito() {
+  const L = lineas(), totalVista = L.reduce((s, [, p]) => s + p, 0);
+  const d = { tamano: S.tamano, tela: S.tela, telaBase: S.telaBase, cinta: S.cinta, cintaPos: S.cintaPos, flecos: S.flecos, flecosForma: S.flecosForma,
+    tachas: S.tachas.map(t => ({ id: t.id, fx: +t.fx.toFixed(3), fy: +t.fy.toFixed(3) })), enganches: S.enganches, cremallera: S.cremallera, medW: S.medW, medH: S.medH };
+  let precio;
+  try { precio = precioBolso(d); } catch (e) { $('aviso').textContent = 'Revisa el diseño: falta algo por elegir.'; $('aviso').hidden = false; return; }
+  if (Math.abs(precio - totalVista) > .001) console.warn('Precio distinto entre el diseñador y la tarifa', precio, totalVista);
+  const svg = $('lienzo').innerHTML.replace(/<text[^>]*>[^<]*<\/text>/g, ''); // sin las medidas
+  const item = { id: Date.now().toString(36), d, precio, cantidad: 1, titulo: `Bolso SIMO · ${tamActual().nombre}`,
+    lineas: L.map(([n]) => n), detalles: detalles(), notas: ($('nota-bolso').value || '').trim(), svg };
+  const c = leerCarrito(); c.push(item);
+  if (!guardarCarrito(c)) { $('aviso').textContent = 'No se ha podido guardar el carrito en este navegador.'; $('aviso').hidden = false; return; }
+  pintarCarritoCuenta();
+  $('paso').innerHTML = `<p class="num">Añadido</p><h2>¡Tu SIMO está en el carrito!</h2>
+    <p class="ayuda">${esc(item.titulo)} · ${eur(precio)}. Puedes diseñar otro o terminar el pedido.</p>
+    <div class="tras-anadir"><a class="flecha" href="carrito.html">Ver el carrito (${c.reduce((s, i) => s + i.cantidad, 0)}) <span>›</span></a>
+    <button type="button" class="flecha atras" id="otro">Diseñar otro bolso</button></div>`;
+  $('siguiente').hidden = true; $('atras').hidden = true; $('falta').hidden = true;
+  $('otro').addEventListener('click', () => {
+    Object.assign(S, { tamano: null, tela: null, cinta: 'ninguna', cintaPos: 'centrado', flecos: 'ninguno', flecosForma: 'lados', tachas: [], enganches: false, cremallera: false, medW: '', medH: '', telaBase: 'igual', telaParte: 'tapa' });
+    paso = 0; maxPaso = 0; $('atras').hidden = false; pintarBolso(); pintarPrecio(); pintarPaso(); subir();
+  });
+}
+function pintarCarritoCuenta() {
+  const n = leerCarrito().reduce((s, i) => s + (i.cantidad || 1), 0);
+  document.querySelectorAll('.carrito-n').forEach(el => { el.textContent = n; el.hidden = !n; });
 }
 
 /* ====== Tachuelas: catálogo, resumen y arrastre ====== */
@@ -513,7 +539,7 @@ function pintarPaso() {
   $('siguiente').disabled = !P.listo();
   $('falta').hidden = P.listo() || !P.falta;
   $('falta').textContent = P.falta || '';
-  if (P.id === 'resumen') $('pedido').addEventListener('submit', enviar);
+  if (P.id === 'resumen') $('anadir').addEventListener('click', anadirAlCarrito);
 }
 
 function cambiar(fn) { fn(); pintarBolso(); pintarPrecio(); const y = window.scrollY; pintarPaso(); window.scrollTo(0, y); }
@@ -552,27 +578,5 @@ $('siguiente').addEventListener('click', () => { if (!PASOS[paso].listo()) retur
 $('atras').addEventListener('click', () => { if (paso > 0) { paso--; pintarPaso(); subir(); } });
 function subir() { const p = document.querySelector('.pasos'); if (p.getBoundingClientRect().top < 60) p.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
-function enviar(e) {
-  e.preventDefault();
-  const f = e.target, d = Object.fromEntries(new FormData(f));
-  const aviso = $('aviso');
-  const faltan = ['nombre', 'email', 'direccion', 'cp', 'ciudad'].filter(k => !String(d[k] || '').trim());
-  if (faltan.length || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email || '') || !d.acepto) {
-    aviso.textContent = !d.acepto && !faltan.length ? 'Marca la casilla para confirmar que entiendes las condiciones del encargo.' : 'Revisa los datos: faltan campos o el email no es válido.';
-    aviso.hidden = false; return;
-  }
-  const L = lineas(), total = L.reduce((s, [, p]) => s + p, 0);
-  const txt = ['Hola Simone, quiero encargar este SIMO:', '',
-    ...L.map(([n, p]) => `· ${n}: ${p ? eur(p) : 'incluido'}`),
-    S.cinta !== 'ninguna' ? `· Cinta: ${POS_CINTA.find(p => p.id === S.cintaPos).nombre}` : '',
-    S.flecos !== 'ninguno' ? `· Flecos: ${FORMA_FLECOS.find(p => p.id === S.flecosForma).nombre}` : '',
-    S.tachas.length ? `· Tachuelas (${S.tachas.length}): ${resumenTachas()} — su sitio exacto se ve en el dibujo; adjunta una captura si quieres` : '',
-    `Total del bolso: ${eur(total)} + envío`, '',
-    `Nombre: ${d.nombre}`, `Email: ${d.email}`, `Dirección: ${d.direccion}, ${d.cp} ${d.ciudad}`, d.telefono ? `Teléfono: ${d.telefono}` : '', d.notas ? `Notas: ${d.notas}` : ''
-  ].filter(Boolean).join('\n');
-  location.href = `mailto:simobysimone@gmail.com?subject=${encodeURIComponent('Encargo SIMO · ' + d.nombre)}&body=${encodeURIComponent(txt)}`;
-  aviso.textContent = 'Se ha abierto tu correo con el encargo listo: solo tienes que enviarlo. Si no se abre, escríbenos a simobysimone@gmail.com.';
-  aviso.hidden = false;
-}
 
-pintarBolso(); pintarPrecio(); pintarPaso();
+pintarBolso(); pintarPrecio(); pintarPaso(); pintarCarritoCuenta();

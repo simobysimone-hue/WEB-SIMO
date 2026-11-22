@@ -102,6 +102,12 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .lienzo .tacha{cursor:grab}
 .lienzo.fuera{outline:2px dashed #5E1727;outline-offset:-4px}
 @media (max-width:900px){.paso-tachas .vista{grid-template-columns:1fr}.paso-tachas .vista .precio{display:none}}
+.carrito-ico{position:relative;display:inline-flex;color:#111}
+.carrito-n{position:absolute;top:-6px;right:-9px;min-width:17px;height:17px;border-radius:9px;background:#5E1727;color:#fff;font:600 11px/17px Poppins,system-ui,sans-serif;text-align:center;padding:0 3px;box-sizing:border-box}
+.nota-bolso{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;margin-top:14px}
+.nota-bolso textarea{border:1px solid #111;border-radius:6px;padding:10px;font:14px Poppins,system-ui,sans-serif}
+.flecha.anadir{width:100%;justify-content:center;margin-top:14px;background:#5E1727;border-color:#5E1727}
+.tras-anadir{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .partes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .parte{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid #CFCAC2;border-radius:6px;background:#F6F5F3;padding:10px 14px;font:500 13px Poppins,system-ui,sans-serif;color:#555;cursor:pointer}
 .parte b{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:20px;letter-spacing:.5px;color:#111}
@@ -163,6 +169,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 <div class="win-bar">
 <a href="index.html" aria-label="SIMO, inicio"><img src="brand/logo-negro.png" alt="SIMO"></a>
 <nav><a href="bolsos.html" aria-current="page">Bolsos</a><a href="talleres.html">Talleres</a><a href="index.html#contacto">Contacto</a></nav>
+<a href="carrito.html" class="carrito-ico" aria-label="Carrito"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="carrito-n" hidden>0</span></a>
 <a href="index.html" class="win-x" aria-label="Cerrar Bolsos" title="Volver a la web">×</a>
 </div>
 
@@ -256,6 +263,6 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 </footer>
 
 </div>
-<script src="disena.js?v=20261123d"></script>
+<script type="module" src="disena.js?v=20261123e"></script>
 </body>
 </html>

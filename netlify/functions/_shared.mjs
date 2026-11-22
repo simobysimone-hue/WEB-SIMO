@@ -140,6 +140,25 @@ const mailer = MAIL_USER && MAIL_PASS
 
 const escHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+/* Pedido de bolsos pagado: correo a SIMO con los diseños y la dirección, y confirmación a quien compra.
+   Se envía una sola vez (marca el pago con emailed=1). */
+export async function enviarPedidoBolsos({ session, piId }) {
+  if (!mailer) { console.log('Email de pedido omitido: falta GMAIL_APP_PASSWORD'); return false; }
+  let pi = {};
+  if (piId) { try { pi = await stripeGet(`payment_intents/${piId}`); if (pi.metadata?.emailed === '1') return false; } catch {} }
+  const m = session.metadata || {}, n = Number(m.bolsos || 0), sh = pi.shipping || {}, a = sh.address || {};
+  const email = session.customer_email || session.customer_details?.email || '';
+  const total = ((session.amount_total || 0) / 100).toFixed(2).replace('.', ',');
+  const bolsos = [...Array(n).keys()].map(i => [m[`b${i + 1}`], m[`b${i + 1}_detalle`], m[`b${i + 1}_nota`] ? `Nota: ${m[`b${i + 1}_nota`]}` : ''].filter(Boolean).join('\n   '));
+  const direccion = [sh.name, a.line1, `${a.postal_code || ''} ${a.city || ''}`.trim(), a.state, a.country, sh.phone ? `Tel. ${sh.phone}` : ''].filter(Boolean).join('\n');
+  const texto = `Pedido pagado (${total} EUR) · zona ${m.zona || ''}\n\nBOLSOS\n${bolsos.map((b, i) => `${i + 1}. ${b}`).join('\n')}\n\nENVIAR A\n${direccion}\n\nEmail: ${email}\nPago Stripe: ${piId || session.id}`;
+  await mailer.sendMail({ from: `"SIMO web" <${MAIL_USER}>`, to: MAIL_USER, replyTo: email || undefined, subject: `Nuevo pedido de bolsos · ${sh.name || email}`, text: texto });
+  if (email) await mailer.sendMail({ from: `"SIMO" <${MAIL_USER}>`, to: email, subject: 'Tu pedido SIMO está confirmado',
+    text: `Hola ${sh.name || ''}:\n\nHemos recibido tu pedido y el pago (${total} EUR). Cada bolso se hace a mano: tardaremos de 2 a 3 semanas y te avisaremos cuando salga.\n\nEnvío a:\n${direccion}\n\nGracias por elegir SIMO.\nSIMO · Madrid` });
+  if (piId) { try { await stripePost(`payment_intents/${piId}`, { metadata: { emailed: '1' } }); } catch {} }
+  return true;
+}
+
 export async function enviarConfirmacion({ session, piId, origin }) {
   if (!mailer) { console.log('Email omitido: falta GMAIL_APP_PASSWORD'); return false; }
   if (piId) {

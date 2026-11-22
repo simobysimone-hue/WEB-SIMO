@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { json, stripeGet, enviarConfirmacion } from './_shared.mjs';
+import { json, stripeGet, enviarConfirmacion, enviarPedidoBolsos } from './_shared.mjs';
 
 export default async (req) => {
   try {
@@ -22,7 +22,8 @@ export default async (req) => {
     if (event.type === 'checkout.session.completed') {
       const s = event.data.object;
       const piId = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent?.id;
-      await enviarConfirmacion({ session: s, piId, origin: new URL(req.url).origin }).catch(e => console.error('Email falló:', e.message));
+      if (s.metadata?.tipo === 'bolsos') await enviarPedidoBolsos({ session: s, piId }).catch(e => console.error('Email de pedido falló:', e.message));
+      else await enviarConfirmacion({ session: s, piId, origin: new URL(req.url).origin }).catch(e => console.error('Email falló:', e.message));
     }
     return json({ received: true });
   } catch (e) {
