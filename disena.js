@@ -4,7 +4,7 @@ const TAMANOS = [
   { id: '30x20', nombre: '30 × 20 cm', precio: 45, w: 30, h: 20, nota: 'El clásico' },
   { id: '35x17', nombre: '35 × 17 cm', precio: 45, w: 35, h: 17, tapa: .8, nota: 'Alargado' },
   // 30 × 40 cm abierto: se dobla por la mitad, así que se dibuja como 30 × 20 cm.
-  { id: '30x40', nombre: '30 × 40 cm', precio: 55, w: 30, h: 20, plegado: 40, nota: 'Grande · incluye cremallera interna · se dobla por la mitad' },
+  { id: '30x40', nombre: '30 × 40 cm', precio: 55, w: 30, h: 20, plegado: 40, tapa: .9, sinCremalleraVista: true, nota: 'Grande · incluye cremallera interna · se dobla por la mitad' },
   { id: 'ordenador', nombre: 'Ordenador o iPad', precio: 57, w: 34, h: 25, nota: 'Funda a medida: escribe las medidas de tu ordenador o iPad', medidas: true }
 ];
 const TELAS = [
@@ -235,7 +235,7 @@ function bolsoSVG() {
   if (tela.grano || tela.img) cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#fff" filter="url(#grano)" clip-path="url(#clipBolso)"/>`;
   cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="7" fill="url(#luz)" stroke="rgba(0,0,0,.28)" stroke-width="1"/>`;
   // Cremallera (bajo la tapa)
-  if (S.cremallera || S.tamano === '30x40') {
+  if ((S.cremallera || S.tamano === '30x40') && !tam.sinCremalleraVista) {
     cuerpo += `<line x1="${x + 10}" y1="${fb + 7}" x2="${x + W - 10}" y2="${fb + 7}" stroke="#1d1d1d" stroke-width="3.2"/><line x1="${x + 10}" y1="${fb + 7}" x2="${x + W - 10}" y2="${fb + 7}" stroke="#8b8b8b" stroke-width="1.2" stroke-dasharray="1.6 1.6"/>`
       + `<rect x="${x + 14}" y="${fb + 4}" width="6" height="6" rx="1" fill="url(#g-plata)"/><rect x="${x + 15.5}" y="${fb + 9}" width="3" height="10" rx="1.5" fill="url(#g-plata)"/>`;
   }
