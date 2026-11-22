@@ -28,32 +28,26 @@ const TELAS = [
     { id: 'vaca', nombre: 'Vaca', img: 'img/telas/vaca.jpg', color: '#EEE', extra: 0 } ] }
 ];
 const CINTAS = [
+  // Lentejuelas y plata: fotos reales de las cintas (img/cinta-*.webp, en horizontal).
   { grupo: 'Lentejuelas', extra: 3, items: [
-    { id: 'lent-negra-dorada', nombre: 'Negra y dorada', tipo: 'lentejuelas', c: ['#1C1C1C', '#D4AF37'] },
-    { id: 'lent-plateada', nombre: 'Plateada', tipo: 'lentejuelas', c: ['#DCDDE0'] },
-    { id: 'lent-dorada', nombre: 'Dorada', tipo: 'lentejuelas', c: ['#D9B44A'] },
-    { id: 'lent-plateada-oscuro', nombre: 'Plateada oscuro', tipo: 'lentejuelas', c: ['#7A7C80'] },
-    { id: 'lent-bronce', nombre: 'Bronce', tipo: 'lentejuelas', c: ['#8C5A2B'] } ] },
+    { id: 'lent-negra-dorada', nombre: 'Negra y dorada', img: 'img/cinta-lent-negra-dorada.webp', ar: 4.7, c: ['#1C1C1C', '#C9A55B'] },
+    { id: 'lent-plateada', nombre: 'Plateada', img: 'img/cinta-lent-plateada.webp', ar: 6.97, c: ['#C9C8C4'] },
+    { id: 'lent-dorada', nombre: 'Dorada', img: 'img/cinta-lent-dorada.webp', ar: 6.52, c: ['#C9AC4F'] },
+    { id: 'lent-plateada-oscuro', nombre: 'Plateada oscuro', img: 'img/cinta-lent-plateada-oscuro.webp', ar: 6, c: ['#5B5651'] } ] },
   { grupo: 'Plata', extra: 4, items: [
-    { id: 'plata-flores', nombre: 'Flores', tipo: 'flores', c: ['#CFD3DA'] },
-    { id: 'plata-malla', nombre: 'Malla plata', tipo: 'malla', c: ['#C9CBCF'] },
-    { id: 'plata-malla-tachuelas', nombre: 'Malla tachuelas', tipo: 'mallatach', c: ['#B8BABE'] } ] },
+    { id: 'plata-flores', nombre: 'Flores', img: 'img/cinta-plata-flores.webp', ar: 5.08, c: ['#E6E7EA'] },
+    { id: 'plata-malla', nombre: 'Malla plata', img: 'img/cinta-plata-malla.webp', ar: 4.57, c: ['#9A9B9E'] },
+    { id: 'plata-malla-tachuelas', nombre: 'Malla tachuelas', img: 'img/cinta-plata-malla-tachuelas.webp', ar: 5.93, c: ['#B7B5B0'] } ] },
+  // Cadenas: dos hileras finas, dibujadas con eslabones metálicos.
   { grupo: 'Cadena', extra: 5, items: [
-    { id: 'cadena-dorada', nombre: 'Dorada', tipo: 'cadena', c: ['#D6B04C'] },
-    { id: 'cadena-plateada', nombre: 'Plateada', tipo: 'cadena', c: ['#C8CACD'] } ] },
-  { grupo: 'Limitadas', items: [
-    { id: 'lim-verde-dorada', nombre: 'Verde y dorada', tipo: 'lentejuelas', c: ['#2E7D4F', '#D4AF37'], extra: 3 },
-    { id: 'lim-fucsia', nombre: 'Fucsia', tipo: 'lentejuelas', c: ['#D81B78'], extra: 5 },
-    { id: 'lim-negra', nombre: 'Negra', tipo: 'lentejuelas', c: ['#151515'], extra: 3 },
-    { id: 'lim-dorada', nombre: 'Dorada', tipo: 'lentejuelas', c: ['#C99A2E'], extra: 4 },
-    { id: 'lim-turquesa', nombre: 'Turquesa', tipo: 'lentejuelas', c: ['#28B5B0'], extra: 5 },
-    { id: 'lim-rosa', nombre: 'Rosa', tipo: 'lentejuelas', c: ['#F29BB8'], extra: 3 },
-    { id: 'lim-verde-rosa', nombre: 'Verde y rosa', tipo: 'lentejuelas', c: ['#2E7D4F', '#F29BB8'], extra: 4 },
-    { id: 'lim-rosa-verde-dorada', nombre: 'Rosa, verde y dorada', tipo: 'lentejuelas', c: ['#F29BB8', '#2E7D4F', '#D4AF37'], extra: 5 } ] }
+    { id: 'cadena-dorada', nombre: 'Dorada', tipo: 'cadena', metal: 'oro', c: ['#C79B4E'] },
+    { id: 'cadena-plateada', nombre: 'Plateada', tipo: 'cadena', metal: 'plata', c: ['#A9ABAE'] } ] },
+  // Cinta de tela: cualquiera de las telas del bolso.
+  { grupo: 'Cinta de tela', extra: 3, items: TELAS.flatMap(g => g.items.map(t => ({
+    id: 'tela-' + t.id, nombre: `${t.nombre} (${g.grupo.split(' ')[0].toLowerCase()})`, tipo: 'tela', tela: t.id, c: [t.color] }))) }
 ];
 const POS_CINTA = [
-  { id: 'arriba', nombre: 'Arriba' }, { id: 'medio', nombre: 'En medio' }, { id: 'abajo', nombre: 'Abajo' },
-  { id: 'dos', nombre: 'Dos cintas (precio × 2)' }, { id: 'vertical', nombre: 'Vertical' }
+  { id: 'centrado', nombre: 'Centrada' }, { id: 'doble', nombre: 'Doble (precio × 2)' }
 ];
 const FLECOS = [
   { grupo: 'Flecos', extra: 5, items: [
@@ -89,7 +83,7 @@ const TACH = Object.fromEntries(TACHUELAS.map(t => [t.id, t]));
 const TAM = Object.fromEntries(TAMANOS.map(t => [t.id, t]));
 
 /* ====== Estado ====== */
-const S = { tamano: null, tela: null, cinta: 'ninguna', cintaPos: 'medio', flecos: 'ninguno', flecosForma: 'lados',
+const S = { tamano: null, tela: null, cinta: 'ninguna', cintaPos: 'centrado', flecos: 'ninguno', flecosForma: 'lados',
   tachuelas: [], tachPos: 'arriba', enganches: false, cremallera: false, medW: '', medH: '',
   telaBase: 'igual', telaParte: 'tapa' };
 const EXTRA_DOS_TELAS = 2; // tapa y base de distinta tela
@@ -126,7 +120,7 @@ function lineas() {
       L.push(['Tapa y base de distinta tela', EXTRA_DOS_TELAS]);
     }
   }
-  if (S.cinta !== 'ninguna') { const c = CINTA[S.cinta]; const x = S.cintaPos === 'dos' ? 2 : 1; L.push([`Cinta ${c.nombre.toLowerCase()}${x === 2 ? ' × 2' : ''}`, c.extra * x]); }
+  if (S.cinta !== 'ninguna') { const c = CINTA[S.cinta]; const x = S.cintaPos === 'doble' ? 2 : 1; L.push([`Cinta ${c.nombre.toLowerCase()}${x === 2 ? ' × 2' : ''}`, c.extra * x]); }
   if (S.flecos !== 'ninguno') { const f = FLECO[S.flecos]; L.push([`Flecos ${f.nombre.toLowerCase()}`, f.extra]); }
   if (S.tachuelas.length) L.push([`Tachuelas (${S.tachuelas.length} ${S.tachuelas.length === 1 ? 'tipo' : 'tipos'})`, PRECIO_TACHUELAS]);
   if (S.enganches) L.push(['Enganches', 5]);
@@ -144,30 +138,6 @@ function pintarPrecio() {
 function rnd(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 const METAL = { plata: ['#FFFFFF', '#C9CCD1', '#7D8187'], oro: ['#FFF3B0', '#D9B24A', '#8A6416'], bronce: ['#F1CC92', '#B07B3C', '#5E3A14'] };
 
-function patronCinta(c, id) {
-  const [a, b = a, d = b] = c.c;
-  if (c.tipo === 'lentejuelas') {
-    const col = [a, b, d];
-    let s = `<pattern id="${id}" width="10" height="9" patternUnits="userSpaceOnUse"><rect width="10" height="9" fill="${a}"/>`;
-    [[0, 0], [10, 0], [5, 4.5], [0, 9], [10, 9]].forEach(([x, y], i) => {
-      const f = col[(i + (y ? 1 : 0)) % col.length];
-      s += `<circle cx="${x}" cy="${y}" r="4.3" fill="${f}" stroke="rgba(0,0,0,.35)" stroke-width=".6"/><circle cx="${x - 1.2}" cy="${y - 1.4}" r="1.3" fill="rgba(255,255,255,.55)"/>`;
-    });
-    return s + '</pattern>';
-  }
-  if (c.tipo === 'malla' || c.tipo === 'mallatach') {
-    const r = c.tipo === 'malla' ? 2.6 : 3.3, t = c.tipo === 'malla' ? 7 : 9;
-    return `<pattern id="${id}" width="${t}" height="${t}" patternUnits="userSpaceOnUse"><rect width="${t}" height="${t}" fill="#3A3B3E"/><circle cx="${t / 2}" cy="${t / 2}" r="${r}" fill="url(#g-plata)"/></pattern>`;
-  }
-  if (c.tipo === 'flores') {
-    return `<pattern id="${id}" width="34" height="26" patternUnits="userSpaceOnUse"><rect width="34" height="26" fill="#D9DCE2"/>
-      <path d="M2 20 Q10 8 18 14 T32 8" fill="none" stroke="#6F737A" stroke-width=".8"/>
-      ${[[9, 11], [25, 12]].map(([x, y]) => [0, 72, 144, 216, 288].map(g => `<circle cx="${x + 3 * Math.cos(g * Math.PI / 180)}" cy="${y + 3 * Math.sin(g * Math.PI / 180)}" r="2" fill="#F4F5F7" stroke="#8A8E95" stroke-width=".4"/>`).join('') + `<circle cx="${x}" cy="${y}" r="1.5" fill="#B9BCC2"/>`).join('')}
-    </pattern>`;
-  }
-  // cadena
-  return `<pattern id="${id}" width="12" height="7" patternUnits="userSpaceOnUse"><ellipse cx="6" cy="3.5" rx="5" ry="2.6" fill="none" stroke="${a}" stroke-width="1.6"/><ellipse cx="0" cy="3.5" rx="2" ry="1.2" fill="none" stroke="${a}" stroke-width="1.4"/><ellipse cx="12" cy="3.5" rx="2" ry="1.2" fill="none" stroke="${a}" stroke-width="1.4"/></pattern>`;
-}
 
 function rellenoTela(t, id, x, y, w, h) {
   if (t.img) return `<pattern id="${id}" patternUnits="userSpaceOnUse" x="${x}" y="${y}" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${t.color}"/><image href="${t.img}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice"/></pattern>`;
@@ -264,16 +234,32 @@ function bolsoSVG() {
   // Cinta
   if (S.cinta !== 'ninguna') {
     const c = CINTA[S.cinta];
-    defs += patronCinta(c, 'pCinta');
-    const bh = Math.max(16, Math.min(34, Math.round(flapH * .26)));
-    const banda = (by) => `<rect x="${x}" y="${by}" width="${W}" height="${bh}" fill="url(#pCinta)"/><rect x="${x}" y="${by}" width="${W}" height="${bh}" fill="url(#luz)" opacity=".6"/><line x1="${x}" y1="${by}" x2="${x + W}" y2="${by}" stroke="rgba(0,0,0,.35)"/><line x1="${x}" y1="${by + bh}" x2="${x + W}" y2="${by + bh}" stroke="rgba(0,0,0,.35)"/>`;
-    if (S.cintaPos === 'vertical') {
-      const bw = Math.round(bh * 1.6), bx = x + (W - bw) / 2;
-      tapa += `<rect x="${bx}" y="${y}" width="${bw}" height="${flapH}" fill="url(#pCinta)"/><rect x="${bx}" y="${y}" width="${bw}" height="${flapH}" fill="url(#luz)" opacity=".6"/><line x1="${bx}" y1="${y}" x2="${bx}" y2="${fb}" stroke="rgba(0,0,0,.35)"/><line x1="${bx + bw}" y1="${y}" x2="${bx + bw}" y2="${fb}" stroke="rgba(0,0,0,.35)"/>`;
-    } else {
-      const pos = { arriba: [.16], medio: [.5 - bh / flapH / 2], abajo: [.84 - bh / flapH], dos: [.22, .62 - bh / flapH] }[S.cintaPos];
-      pos.forEach(p => { tapa += banda(Math.round(y + flapH * p)); });
-    }
+    const cadena = c.tipo === 'cadena';
+    // Alto de la cinta: unos 4 cm sobre el ancho del bolso (las cadenas, más finas).
+    const bh = cadena ? Math.max(10, Math.round(W * .05)) : Math.max(16, Math.min(36, Math.round(W * .12), Math.round(flapH * .42)));
+    const centros = S.cintaPos === 'doble' ? [.3, .7] : [.5];
+    centros.forEach((cy, n) => {
+      const by = Math.round(y + flapH * cy - bh / 2), id = 'pCinta' + n;
+      if (cadena) {
+        // dos hileras de eslabones con brillo metálico
+        [by + bh * .3, by + bh * .72].forEach((ly, h) => {
+          tapa += `<line x1="${x}" y1="${ly + 1}" x2="${x + W}" y2="${ly + 1}" stroke="rgba(0,0,0,.35)" stroke-width="2.2"/>`;
+          for (let lx = x + (h ? 1.8 : 0); lx < x + W; lx += 3.6) {
+            const g = Math.round(lx / 3.6) % 2 ? 28 : -28;
+            tapa += `<ellipse cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" rx="2.3" ry="1.3" transform="rotate(${g} ${lx.toFixed(1)} ${ly.toFixed(1)})" fill="none" stroke="url(#g-${c.metal})" stroke-width="1.1"/>`;
+          }
+        });
+        return;
+      }
+      if (c.img) defs += `<pattern id="${id}" patternUnits="userSpaceOnUse" x="${x}" y="${by}" width="${(bh * c.ar).toFixed(1)}" height="${bh}"><rect width="${bh * c.ar}" height="${bh}" fill="${c.c[0]}"/><image href="${c.img}" width="${(bh * c.ar).toFixed(1)}" height="${bh}" preserveAspectRatio="none"/></pattern>`;
+      else defs += rellenoTela(TELA[c.tela], id, x, by, W, bh);
+      tapa += `<rect x="${x}" y="${by + 2}" width="${W}" height="${bh}" fill="rgba(0,0,0,.28)"/>` // sombra bajo la cinta
+        + `<rect x="${x}" y="${by}" width="${W}" height="${bh}" fill="url(#${id})"/>`
+        + `<rect x="${x}" y="${by}" width="${W}" height="${bh}" fill="url(#luz)" opacity=".5"/>`
+        + `<line x1="${x}" y1="${by + .5}" x2="${x + W}" y2="${by + .5}" stroke="rgba(0,0,0,.35)"/><line x1="${x}" y1="${by + bh - .5}" x2="${x + W}" y2="${by + bh - .5}" stroke="rgba(0,0,0,.35)"/>`;
+      if (c.tipo === 'tela') // pespunte de la cinta de tela
+        tapa += `<line x1="${x}" y1="${by + 3}" x2="${x + W}" y2="${by + 3}" stroke="rgba(255,255,255,.35)" stroke-dasharray="3 2" stroke-width=".7"/><line x1="${x}" y1="${by + bh - 3}" x2="${x + W}" y2="${by + bh - 3}" stroke="rgba(255,255,255,.35)" stroke-dasharray="3 2" stroke-width=".7"/>`;
+    });
   }
   // borde inferior de la tapa
   tapa += `</g><path d="M${x + 1} ${fb - 1}h${W - 2}" stroke="rgba(0,0,0,.45)" stroke-width="1.4"/><path d="M${x + 1} ${fb - 3}h${W - 2}" stroke="rgba(255,255,255,.18)"/>`;
@@ -326,11 +312,15 @@ const muestraTela = t => t.img ? `background-image:url(${t.img})`
   : t.cuero ? `background:${t.brillo ? 'linear-gradient(135deg,rgba(255,255,255,.35),rgba(255,255,255,0) 40%,rgba(255,255,255,.25) 65%,rgba(0,0,0,.1)),' : ''}url(img/grano-cuero.webp) center/300px,${t.color};background-blend-mode:${t.brillo ? 'normal,' : ''}overlay`
   : `background:${t.color}`;
 const muestraCinta = c => {
-  const [a, b = a] = c.c;
-  if (c.tipo === 'cadena') return `background:repeating-radial-gradient(circle at 50% 50%,transparent 0 3px,${a} 3px 5px,transparent 5px 7px) 0 0/12px 12px,#2a2a2a`;
-  if (c.tipo === 'malla' || c.tipo === 'mallatach') return 'background:radial-gradient(circle,#f3f3f3 0 1.5px,#a7a9ad 2.6px,transparent 3.2px) 0 0/8px 8px,#3A3B3E';
-  if (c.tipo === 'flores') return 'background:radial-gradient(circle,#fff 0 2px,#9aa0a8 2.5px,transparent 3.5px) 0 0/14px 12px,#D9DCE2';
-  return `background:radial-gradient(circle at 40% 40%,rgba(255,255,255,.7) 0 1px,transparent 1.5px) 0 0/9px 9px,radial-gradient(circle,${a} 0 3.6px,rgba(0,0,0,.35) 4.2px,transparent 4.6px) 0 0/9px 9px,radial-gradient(circle,${b} 0 3.6px,rgba(0,0,0,.35) 4.2px,transparent 4.6px) 4.5px 4.5px/9px 9px,${a}`;
+  if (c.img) return `background:url(${c.img}) left center/auto 100% repeat-x,${c.c[0]}`;
+  if (c.tipo === 'tela') return muestraTela(TELA[c.tela]);
+  // cadena: dos hileras de eslabones (pequeño SVG) sobre fondo claro
+  const m = METAL[c.metal];
+  let s = '';
+  [22, 42].forEach((cy, h) => { for (let lx = h * 3; lx < 128; lx += 6) s += `<ellipse cx='${lx}' cy='${cy}' rx='3.8' ry='2.2' transform='rotate(${(lx / 6) % 2 ? 28 : -28} ${lx} ${cy})' fill='none' stroke='${m[2]}' stroke-width='1.8'/>`; });
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='128' height='64'>${s}</svg>`;
+  const uri = encodeURIComponent(svg).replace(/'/g, '%27').replace(/\(/g, '%28').replace(/\)/g, '%29');
+  return `background:url(data:image/svg+xml,${uri}) center/cover,#E9E6E1`;
 };
 const muestraFleco = f => `background:repeating-linear-gradient(90deg,${f.c[0]} 0 1.5px,transparent 1.5px 3px${f.c[1] ? `,${f.c[1]} 3px 4.5px,transparent 4.5px 6px` : ''}),#F6F5F3`;
 const precioTxt = (n, mas = true) => n ? (mas ? '+' : '') + eur(n) : 'Sin coste extra';
@@ -371,10 +361,10 @@ const PASOS = [
       const pista = parte === 'tapa' && S.tela ? `<p class="nt" style="margin:10px 0 0">¿Quieres otra tela para la base? Pulsa <b>Base</b>.</p>` : '';
       return tabs + pista + igual + TELAS.map(g => `<p class="grupo">${g.grupo}<em>${g.extra === undefined ? '' : precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => { const t = TELA[i.id]; return opcion({ pulsado: actual === t.id, muestra: muestraTela(t), nombre: t.nombre, pr: g.extra === undefined ? precioTxt(t.extra) : '', dato: 'tela', valor: t.id }); }).join('')}</div>`).join('');
     } },
-  { id: 'cinta', titulo: 'Añade una cinta', ayuda: 'La cinta va sobre la tapa. Elige el tipo y después dónde va.', listo: () => true,
-    html: () => `<div class="opts">${opcion({ pulsado: S.cinta === 'ninguna', muestra: 'background:#F6F5F3', nombre: 'Sin cinta', dato: 'cinta', valor: 'ninguna' })}</div>`
-      + CINTAS.map(g => `<p class="grupo">${g.grupo}<em>${g.extra === undefined ? 'de +3 a +5 €' : precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => { const c = CINTA[i.id]; return opcion({ pulsado: S.cinta === c.id, muestra: muestraCinta(c), nombre: c.nombre, pr: g.extra === undefined ? precioTxt(c.extra) : '', dato: 'cinta', valor: c.id }); }).join('')}</div>`).join('')
-      + (S.cinta !== 'ninguna' ? `<p class="grupo">¿Dónde va la cinta?</p>${chips(POS_CINTA, S.cintaPos, 'cintapos')}` : '') },
+  { id: 'cinta', titulo: 'Añade una cinta', ayuda: 'La cinta va sobre la tapa. Elige el tipo y si la quieres centrada o doble.', listo: () => true,
+    html: () => `<p class="grupo">¿Centrada o doble?</p>${chips(POS_CINTA, S.cintaPos, 'cintapos')}`
+      + `<div class="opts" style="margin-top:14px">${opcion({ pulsado: S.cinta === 'ninguna', muestra: 'background:#F6F5F3', nombre: 'Sin cinta', dato: 'cinta', valor: 'ninguna' })}</div>`
+      + CINTAS.map(g => `<p class="grupo">${g.grupo}<em>${precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => { const c = CINTA[i.id]; return opcion({ pulsado: S.cinta === c.id, muestra: muestraCinta(c), nombre: c.nombre, dato: 'cinta', valor: c.id }); }).join('')}</div>`).join('') },
   { id: 'flecos', titulo: 'Añade flecos', ayuda: 'Elige el color y cómo van colocados.', listo: () => true,
     html: () => `<div class="opts">${opcion({ pulsado: S.flecos === 'ninguno', muestra: 'background:#F6F5F3', nombre: 'Sin flecos', dato: 'flecos', valor: 'ninguno' })}</div>`
       + FLECOS.map(g => `<p class="grupo">${g.grupo}<em>${precioTxt(g.extra)}</em></p><div class="opts">${g.items.map(i => opcion({ pulsado: S.flecos === i.id, muestra: muestraFleco(i), nombre: i.nombre, dato: 'flecos', valor: i.id })).join('')}</div>`).join('')
