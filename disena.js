@@ -196,72 +196,59 @@ function bolsoSVG() {
   defs += rellenoTela(telaBase, 'fBase', x, y, W, H) + rellenoTela(tela, 'fTapa', x - 9, y - 6, W + 18, H + 12);
 
   let atras = '', delante = '';
-  // Flecos: 15 cm de largo a escala del bolso. La zona del fleco se rellena con una textura de fibras
-  // finas y verticales en los tonos reales de cada fleco; puntas desiguales y algunos hilos sueltos.
+  // Flecos: 15 cm de largo a escala del bolso. Cada fleco es un cordón con sombra, color y brillo,
+  // y hay hueco entre ellos para que se distinga uno de otro.
   if (S.flecos !== 'ninguno') {
     const f = FLECO[S.flecos], tonos = f.c, cmU = W / tam.w, LARGO = 15 * cmU;
-    const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
-    const tabla = k => { const v = tonos.map(t => rgb(t)[k].toFixed(3)); return [v[0], v[0], v[1], v[2], v[3], v[3]].join(' '); };
-    defs += `<filter id="fibra" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="${(1.1 / Math.max(1, cmU / 8)).toFixed(3)} 0.011" numOctaves="2" seed="7" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1" result="g"/>
-      <feComponentTransfer in="g" result="c"><feFuncR type="table" tableValues="${tabla(0)}"/><feFuncG type="table" tableValues="${tabla(1)}"/><feFuncB type="table" tableValues="${tabla(2)}"/></feComponentTransfer>
-      ${f.brillo ? `<feTurbulence type="fractalNoise" baseFrequency="1.6 0.04" numOctaves="1" seed="11" result="b"/>
-      <feColorMatrix in="b" type="matrix" values="0 0 0 0 ${rgb(f.brillo[0])[0]} 0 0 0 0 ${rgb(f.brillo[0])[1]} 0 0 0 0 ${rgb(f.brillo[0])[2]} 4.5 0 0 0 -2.6" result="bm"/>
-      <feComposite in="bm" in2="c" operator="over"/>` : ''}
-    </filter>
-    <linearGradient id="flecoSombraV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".25" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".06"/></linearGradient>`;
-    const puntas = (x0, x1, yBase, dir) => { // borde de abajo irregular, como las puntas de los hilos
-      let s = '', n = Math.max(6, Math.round(Math.abs(x1 - x0) / 1.1));
-      for (let i = 0; i <= n; i++) { const px = x0 + (x1 - x0) * i / n, larga = R() < .25 ? cmU * (.6 + R() * .9) : R() * cmU * .45; s += `L${px.toFixed(1)} ${(yBase - (i % 2 ? larga : larga * .3)).toFixed(1)}`; }
-      return s;
+    const grosor = Math.max(1.1, .16 * cmU);          // ~1,6 mm por cordón
+    const paso = grosor * 1.9;                         // separación entre cordones
+    const cordon = (x0, y0, x1, y1, curva) => {
+      const brillo = f.brillo && R() < .3;
+      const col = brillo ? f.brillo[0] : tonos[1 + Math.floor(R() * (tonos.length - 1))];
+      const luz = brillo ? f.brillo[1] : tonos[tonos.length - 1];
+      const d = `M${x0.toFixed(1)} ${y0.toFixed(1)}C${(x0 + curva * .3).toFixed(1)} ${(y0 + (y1 - y0) * .35).toFixed(1)} ${(x1 - curva * .4).toFixed(1)} ${(y0 + (y1 - y0) * .7).toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+      const w = grosor * (.85 + R() * .3);
+      return `<path d="${d}" stroke="rgba(0,0,0,.45)" stroke-width="${(w + .9).toFixed(2)}" fill="none" stroke-linecap="round"/>`
+        + `<path d="${d}" stroke="${col}" stroke-width="${w.toFixed(2)}" fill="none" stroke-linecap="round"/>`
+        + `<path d="${d}" stroke="${luz}" stroke-width="${(w * .28).toFixed(2)}" fill="none" stroke-linecap="round" opacity="${brillo ? .95 : .55}" transform="translate(${(-w * .22).toFixed(2)} 0)"/>`;
     };
-    const sueltos = (n, fn) => { let s = ''; for (let i = 0; i < n; i++) { const [a, b, c2, d2] = fn(); s += `<path d="M${a.toFixed(1)} ${b.toFixed(1)}Q${((a + c2) / 2 + (R() - .5) * 4).toFixed(1)} ${((b + d2) / 2).toFixed(1)} ${c2.toFixed(1)} ${d2.toFixed(1)}" stroke="${tonos[1 + Math.floor(R() * 3)]}" stroke-width="${(.45 + R() * .45).toFixed(2)}" fill="none" opacity=".9"/>`; } return s; };
-    let abajo = 0;
+    let fondo = '', frente = '', abajo = 0;
     if (S.flecosForma === 'tapa') {
-      // Delante: cosidos en la parte baja de la tapa, caen 15 cm sobre la base.
-      const y0 = fb - Math.round(flapH * .2), yb = y0 + LARGO;
-      const silueta = `M${x + 1} ${y0}L${x + W - 1} ${y0}L${x + W + 1} ${yb - cmU}${puntas(x + W + 1, x - 1, yb, -1)}Z`;
-      defs += `<clipPath id="cfD"><path d="${silueta}"/></clipPath>`;
-      delante += `<g clip-path="url(#cfD)"><rect x="${x - 3}" y="${y0}" width="${W + 6}" height="${LARGO + 4}" filter="url(#fibra)"/><rect x="${x - 3}" y="${y0}" width="${W + 6}" height="${LARGO + 4}" fill="url(#flecoSombraV)"/></g>`
-        + sueltos(Math.round(W / 6), () => { const a = x + R() * W; return [a, y0 + LARGO * (.4 + R() * .5), a + (R() - .5) * 6, yb + R() * cmU * .8]; })
-        + `<rect x="${x + 1}" y="${y0 - 3}" width="${W - 2}" height="6" rx="1" fill="${tonos[0]}"/><rect x="${x + 1}" y="${y0 - 3}" width="${W - 2}" height="1.6" fill="rgba(255,255,255,.18)"/>`;
-      abajo = yb + cmU;
+      // Delante: cosidos en la parte baja de la tapa, caen 15 cm.
+      const y0 = fb - Math.round(flapH * .2), n = Math.floor((W - 4) / paso);
+      for (let i = 0; i <= n; i++) {
+        const sx = x + 2 + i * paso + (R() - .5) * paso * .4, len = LARGO * (.94 + R() * .06), sway = (R() - .5) * cmU * 1.2;
+        const s = cordon(sx, y0, sx + sway, y0 + len, sway);
+        if (R() < .45) fondo += s; else frente += s;
+        abajo = Math.max(abajo, y0 + len);
+      }
+      delante += `<rect x="${x + 1}" y="${y0 - grosor * 1.6}" width="${W - 2}" height="${grosor * 3.2}" rx="1" fill="${tonos[0]}"/>`
+        + `<g opacity=".8">${fondo}</g>${frente}`
+        + `<rect x="${x + 1}" y="${y0 - grosor * 1.6}" width="${W - 2}" height="${grosor * 1.1}" fill="rgba(255,255,255,.15)"/>`;
     } else {
-      // Laterales: cosidos a lo largo de cada lado; caen 15 cm y se abren un poco hacia fuera.
-      [-1, 1].forEach((lado, j) => {
-        const bx = lado < 0 ? x + 2 : x + W - 2, top = y + 3, yb = bot + LARGO;
-        const ancho = cmU * 3.6, sale = cmU * .4;
-        const ext = bx + lado * ancho, int = bx - lado * cmU * .6;
-        const silueta = `M${bx} ${top}L${(bx + lado * sale).toFixed(1)} ${top}C${(bx + lado * ancho * .55).toFixed(1)} ${(top + LARGO * .45).toFixed(1)} ${ext.toFixed(1)} ${(yb - LARGO * .4).toFixed(1)} ${ext.toFixed(1)} ${(yb - cmU).toFixed(1)}${puntas(ext, int, yb, -lado)}L${int.toFixed(1)} ${bot}Z`;
-        const gx = Math.min(ext, int) - 2, gw = Math.abs(ext - int) + 4;
-        defs += `<clipPath id="cfL${j}"><path d="${silueta}"/></clipPath><linearGradient id="flecoSombraH${j}" x1="${lado < 0 ? 1 : 0}" y1="0" x2="${lado < 0 ? 0 : 1}" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".4"/><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".08"/></linearGradient>`;
-        atras += `<g clip-path="url(#cfL${j})"><rect x="${gx}" y="${top}" width="${gw}" height="${yb - top + 4}" filter="url(#fibra)"/><rect x="${gx}" y="${top}" width="${gw}" height="${yb - top + 4}" fill="url(#flecoSombraH${j})"/><rect x="${gx}" y="${top}" width="${gw}" height="${yb - top + 4}" fill="url(#flecoSombraV)"/></g>`
-          + sueltos(14, () => { const a = ext - lado * R() * cmU * .8, b = top + (yb - top) * (.35 + R() * .45); return [a, b, a + lado * R() * cmU * .9, b + cmU * (2 + R() * 3)]; });
+      // Laterales: cosidos a lo largo de cada lado; cada fleco cae 15 cm y se abren en abanico.
+      [-1, 1].forEach(lado => {
+        const bx = lado < 0 ? x + 3 : x + W - 3, top = y + 3, alto = H - 6, n = Math.floor(alto / paso);
+        for (let i = 0; i <= n; i++) {
+          const sy = top + i * paso, len = LARGO * (.92 + R() * .08);
+          const fuera = lado * (grosor + R() * cmU * 3.2 + (i / n) * cmU * .8); // repartidos en unos 3-4 cm de ancho
+          const s = cordon(bx, sy, bx + fuera, sy + len, fuera * .6);
+          if (R() < .5) fondo += s; else frente += s;
+          abajo = Math.max(abajo, sy + len);
+        }
       });
-      abajo = bot + LARGO + cmU;
+      atras += `<g opacity=".78">${fondo}</g>${frente}`;
     }
+    // El dibujo crece hacia abajo para que quepan los 15 cm (salvo en el paso de tachuelas, que es un zoom).
     if (!zoom) VH = Math.max(VH, Math.ceil(abajo + 14));
   }
-  // Enganches
-  if (S.enganches) {
-    [x - 2, x + W + 2].forEach(cx => {
-      atras += `<path d="M${cx} ${y + 6}v14" stroke="#3a3a3a" stroke-width="5" stroke-linecap="round"/>`;
-      delante += `<circle cx="${cx}" cy="${y + 4}" r="7.5" fill="none" stroke="url(#g-plata)" stroke-width="3"/>`;
-    });
-    delante += `<path d="M${x - 2} ${y - 3}C${x + W * .2} ${y - 70} ${x + W * .8} ${y - 70} ${x + W + 2} ${y - 3}" fill="none" stroke="#9EA2A8" stroke-width="2.4" stroke-dasharray="5 2.5" opacity=".55"/>`;
-  }
+  // Enganches y cremallera interna: solo cambian el precio y el resumen, no el dibujo.
 
   // Cuerpo y tapa
   let cuerpo = `<ellipse cx="${x + W / 2}" cy="${bot + 8}" rx="${W * .56}" ry="10" fill="url(#suelo)"/>`;
   cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="7" fill="url(#fBase)"/>`;
   if (telaBase.tejido) cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#fff" filter="url(#grano)" clip-path="url(#clipBolso)"/>`;
   cuerpo += `<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="7" fill="url(#luz)" stroke="rgba(0,0,0,.28)" stroke-width="1"/>`;
-  // Cremallera (bajo la tapa)
-  if ((S.cremallera || S.tamano === '30x40') && !tam.sinCremalleraVista) {
-    cuerpo += `<line x1="${x + 10}" y1="${fb + 7}" x2="${x + W - 10}" y2="${fb + 7}" stroke="#1d1d1d" stroke-width="3.2"/><line x1="${x + 10}" y1="${fb + 7}" x2="${x + W - 10}" y2="${fb + 7}" stroke="#8b8b8b" stroke-width="1.2" stroke-dasharray="1.6 1.6"/>`
-      + `<rect x="${x + 14}" y="${fb + 4}" width="6" height="6" rx="1" fill="url(#g-plata)"/><rect x="${x + 15.5}" y="${fb + 9}" width="3" height="10" rx="1.5" fill="url(#g-plata)"/>`;
-  }
   // sombra de la tapa sobre la base
   cuerpo += `<rect x="${x}" y="${fb}" width="${W}" height="16" fill="url(#sombraTapa)" clip-path="url(#clipBolso)"/>`;
   let tapa = `<g clip-path="url(#clipTapa)"><rect x="${x - 2}" y="${y - 2}" width="${W + 4}" height="${flapH + 4}" fill="url(#fTapa)"/>`;
