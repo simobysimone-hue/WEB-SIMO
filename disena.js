@@ -24,8 +24,8 @@ const TELAS = [
     { id: 'plateada', nombre: 'Plateada', color: '#B4B6BA', cuero: true, brillo: true } ] },
   { grupo: 'Estampadas', items: [
     { id: 'serpiente-dorada', nombre: 'Serpiente dorada', img: 'img/tela-serpiente-dorada.webp', color: '#8E7650', extra: 5 },
-    { id: 'serpiente', nombre: 'Serpiente', img: 'img/telas/serpiente.jpg', color: '#6E6A62', extra: 5 },
-    { id: 'vaca', nombre: 'Vaca', img: 'img/telas/vaca.jpg', color: '#EEE', extra: 0 } ] }
+    { id: 'serpiente', nombre: 'Serpiente', img: 'img/tela-serpiente.webp', color: '#6E6A62', extra: 5 },
+    { id: 'vaca', nombre: 'Vaca', img: 'img/tela-vaca.webp', color: '#EEE', extra: 0 } ] }
 ];
 const CINTAS = [
   // Lentejuelas y plata: fotos reales de las cintas (img/cinta-*.webp, en horizontal).
