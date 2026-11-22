@@ -46,3 +46,29 @@
   for = "/*.mjs"
   [headers.values]
     Content-Type = "text/javascript; charset=utf-8"
+
+# Direcciones de la web antigua de talleres (simo-landing) → web nueva
+[[redirects]]
+  from = "/aviso-legal"
+  to = "/index.html#aviso-legal"
+  status = 301
+[[redirects]]
+  from = "/aviso-legal.html"
+  to = "/index.html#aviso-legal"
+  status = 301
+[[redirects]]
+  from = "/privacidad"
+  to = "/index.html#privacidad"
+  status = 301
+[[redirects]]
+  from = "/privacidad.html"
+  to = "/index.html#privacidad"
+  status = 301
+[[redirects]]
+  from = "/cookies"
+  to = "/index.html#cookies"
+  status = 301
+[[redirects]]
+  from = "/cookies.html"
+  to = "/index.html#cookies"
+  status = 301
