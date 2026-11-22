@@ -412,7 +412,7 @@ function resumenHTML() {
   return `<ul class="res">${L.map(([n, p], i) => `<li><span>${esc(n)}</span><span>${p ? (i ? '+' : '') + eur(p) : 'incluido'}</span></li>`).join('')}
     ${detalles().map(([n, v]) => `<li><span>${esc(n)}</span><span>${esc(v)}</span></li>`).join('')}
     <li><span><b>Total del bolso</b></span><span><b>${eur(total)}</b> + envío</span></li></ul>
-  <label class="nota-bolso">Algo más para Simone sobre este bolso (opcional)<textarea id="nota-bolso" rows="2" maxlength="300"></textarea></label>
+  <label class="nota-bolso">Comentarios sobre tu bolso (opcional)<textarea id="nota-bolso" rows="2" maxlength="300"></textarea></label>
   <button type="button" class="flecha full anadir" id="anadir">Añadir al carrito</button>
   <p class="nota">Cada bolso se hace a mano y solo por encargo. El envío se calcula en el carrito según el destino.</p>
   <p class="toast" id="aviso" hidden></p>`;
