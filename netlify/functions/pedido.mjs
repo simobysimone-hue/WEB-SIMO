@@ -21,7 +21,12 @@ export default async (req) => {
     const zona = zonaEnvio(e.pais, e.cp), envio = ENVIOS[zona];
     if (envio.precio == null) return json({ error: 'ENVIO_NO_CONFIGURADO' }, 400);
 
-    const line_items = [], metadata = { tipo: 'bolsos', zona, bolsos: String(bolsos.length) };
+    // De qué anuncio viene el pedido (etiquetas utm_* del enlace): se guarda en Stripe, igual que en los talleres.
+    const limpio = v => String(v || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 60);
+    const ORIGEN = {};
+    for (const k of ['origen', 'campana', 'anuncio']) if (limpio(body[k])) ORIGEN[k] = limpio(body[k]);
+
+    const line_items = [], metadata = { tipo: 'bolsos', zona, bolsos: String(bolsos.length), ...ORIGEN };
     bolsos.forEach((b, i) => {
       const precio = precioBolso(b.d || {});               // lanza DISENO_INVALIDO si algo no existe
       const cantidad = Math.max(1, Math.min(10, parseInt(b.cantidad, 10) || 1));
@@ -50,7 +55,7 @@ export default async (req) => {
       line_items,
       metadata,
       payment_intent_data: {
-        metadata: { tipo: 'bolsos', zona, nombre: corto(e.nombre, 100), telefono: corto(e.telefono, 40) },
+        metadata: { tipo: 'bolsos', zona, nombre: corto(e.nombre, 100), telefono: corto(e.telefono, 40), ...ORIGEN },
         shipping: { name: corto(e.nombre, 100), phone: corto(e.telefono, 40),
           address: { line1: corto(e.direccion, 200), postal_code: corto(e.cp, 20), city: corto(e.ciudad, 100), state: corto(e.provincia, 100), country: corto(e.pais, 2).toUpperCase() } }
       }

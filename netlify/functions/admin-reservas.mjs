@@ -1,4 +1,4 @@
-import { stripeGet, json, modalidadDePago, MODALIDADES } from './_shared.mjs';
+import { cobrosValidos, json, modalidadDePago, MODALIDADES } from './_shared.mjs';
 
 export default async (req) => {
   try {
@@ -10,18 +10,10 @@ export default async (req) => {
     if (!admin) return json({ error: 'ADMIN_NO_CONFIGURADO' }, 503);
     if (pass !== admin) return json({ error: 'NO_AUTORIZADO' }, 401);
 
-    const r = await stripeGet(`charges?limit=100`);
-    const seen = new Set();
     const data = [];
-    for (const ch of r.data || []) {
-      if (ch.status !== 'succeeded') continue;
-      if (ch.amount_refunded) continue;
-      const piId = typeof ch.payment_intent === 'string' ? ch.payment_intent : ch.payment_intent?.id;
-      if (!piId || seen.has(piId)) continue;
-      seen.add(piId);
-      let pi = {};
-      try { pi = await stripeGet(`payment_intents/${piId}`); } catch {}
+    for (const { ch, pi } of await cobrosValidos()) {
       if (!pi.metadata?.fecha) continue;
+      const piId = pi.id;
       const created = new Date((pi.created || ch.created) * 1000);
       data.push({
         id: piId,

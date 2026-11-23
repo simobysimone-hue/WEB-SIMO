@@ -106,29 +106,36 @@ export async function stripeGet(endpoint) {
   return data;
 }
 
-/* Plazas reservadas de una sesión (fecha + modalidad) = suma de los Charges exitosos con esa fecha y modalidad.
-   En live, los cobros son Charges, no PaymentIntents. */
-export async function plazasReservadas(fecha, modalidad) {
-  try {
-    const charges = await stripeGet(`charges?limit=100`);
-    const seen = new Set();
-    let total = 0;
-    for (const ch of charges.data || []) {
-      if (ch.status !== 'succeeded') continue;
-      if (ch.amount_refunded) continue;
-      const piId = typeof ch.payment_intent === 'string' ? ch.payment_intent : ch.payment_intent?.id;
-      if (!piId || seen.has(piId)) continue;
-      seen.add(piId);
-      const pi = await stripeGet(`payment_intents/${piId}`);
-      if (pi.metadata?.fecha !== fecha) continue;
-      if (modalidadDePago(pi.metadata) !== modalidad) continue;
-      total += Number(pi.metadata?.personas || 0);
+/* Todos los cobros válidos de Stripe (pagados y sin devolución), recorriendo todas las páginas.
+   Cada elemento trae { ch, pi }: el cobro y su PaymentIntent con la metadata. */
+export async function cobrosValidos() {
+  const lista = [], vistos = new Set();
+  let cursor = '';
+  do {
+    const r = await stripeGet(`charges?limit=100&expand[]=data.payment_intent${cursor ? `&starting_after=${cursor}` : ''}`);
+    const datos = r.data || [];
+    for (const ch of datos) {
+      if (ch.status !== 'succeeded' || ch.amount_refunded) continue;
+      const pi = ch.payment_intent;
+      if (!pi?.id || vistos.has(pi.id)) continue;
+      vistos.add(pi.id);
+      lista.push({ ch, pi });
     }
-    return total;
-  } catch (e) {
-    console.error('Búsqueda de plazas falló:', e.message);
-    return 0;
+    cursor = r.has_more && datos.length ? datos[datos.length - 1].id : '';
+  } while (cursor);
+  return lista;
+}
+
+/* Plazas reservadas de una sesión (fecha + modalidad).
+   Si Stripe falla, el error sube a propósito: mejor no vender que vender una plaza que no existe. */
+export async function plazasReservadas(fecha, modalidad) {
+  let total = 0;
+  for (const { pi } of await cobrosValidos()) {
+    if (pi.metadata?.fecha !== fecha) continue;
+    if (modalidadDePago(pi.metadata) !== modalidad) continue;
+    total += Number(pi.metadata?.personas || 0);
   }
+  return total;
 }
 
 /* Correo de confirmación (solo se envía una vez: marca el PI con emailed=1) */
