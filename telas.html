@@ -70,6 +70,8 @@ textarea{width:100%;min-height:80px;border:1px solid #111;border-radius:6px;padd
 .cargando{text-align:center;color:#555;margin-top:40px}
 @media (max-width:600px){h1{font-size:44px}h1 em{font-size:28px}.bolso{padding:16px}header{padding:10px 16px}header nav{gap:14px;font-size:21px}main{padding:20px 16px 48px}}
 </style>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="961b1e2b-0403-421f-922b-cc89f5d497ac" data-domains="simoby.netlify.app"></script>
+<script defer src="seguimiento.js?v=20261123"></script>
 </head>
 <body>
 <header><a href="index.html" aria-label="SIMO, inicio"><img src="brand/logo-negro.png" alt="SIMO"></a><nav><a href="bolsos.html">Bolsos</a><a href="talleres.html">Talleres</a><a href="index.html#contacto">Contacto</a></nav></header>
@@ -201,6 +203,7 @@ async function iniciar() {
     $('aviso').hidden = false;
     return;
   }
+  if (window.simoCompra) window.simoCompra(sesionId, d);
   const fecha = d.fecha ? fmtLong.format(new Date(d.fecha + 'T12:00:00')) : '';
   $('resumen').textContent = [d.nombre ? `Hola, ${d.nombre}` : '', d.taller, fecha, d.horario, `${d.personas} ${d.personas === 1 ? 'plaza' : 'plazas'}`].filter(Boolean).join(' · ');
   if (d.telas) {

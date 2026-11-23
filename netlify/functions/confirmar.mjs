@@ -26,6 +26,7 @@ export default async (req) => {
       taller: MODALIDADES[modalidad].nombre,
       horario: (fecha && sesion(fecha, modalidad)?.horario) || s.metadata?.hora || '',
       nombre: String(s.metadata?.nombre || '').split(' ')[0],
+      importe: s.payment_status === 'paid' ? (s.amount_total || 0) / 100 : 0,
       telas
     });
   } catch (e) {

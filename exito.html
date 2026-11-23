@@ -28,6 +28,8 @@ p{font-size:15px}
 .pasos li{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border:1px solid #bbb;border-radius:6px;padding:6px 12px;color:#777}
 .pasos li.ahora{background:#0B0B0C;color:#F6F5F3;border-color:#0B0B0C}
 </style>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="961b1e2b-0403-421f-922b-cc89f5d497ac" data-domains="simoby.netlify.app"></script>
+<script defer src="seguimiento.js?v=20261123"></script>
 </head>
 <body>
 <header><a href="index.html"><img src="brand/logo-negro.png" alt="SIMO"></a><nav><a href="bolsos.html">Bolsos</a><a href="talleres.html">Talleres</a><a href="index.html#contacto">Contacto</a></nav></header>
@@ -44,6 +46,7 @@ const id = new URLSearchParams(location.search).get('sesion');
 if (id) {
   fetch('/api/confirmar?id=' + encodeURIComponent(id)).then(r => r.json()).then(d => {
     // Orden obligatorio: pago → telas → confirmación. Si aún no hay telas, se vuelve a elegirlas.
+    if (window.simoCompra) window.simoCompra(id, d);
     if (d.estado === 'paid' && d.telas === false) { location.replace('telas.html?sesion=' + encodeURIComponent(id)); return; }
     if (d.fecha) {
       const el = document.getElementById('detalle');

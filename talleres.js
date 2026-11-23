@@ -189,11 +189,16 @@ $('booking-form').addEventListener('submit', async event => {
     const res = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fecha: selectedDate, modalidad, personas: Number(people.value), nombre, email })
+      body: JSON.stringify({ fecha: selectedDate, modalidad, personas: Number(people.value), nombre, email, ...(window.simoOrigen ? window.simoOrigen() : {}) })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.url) throw new Error(data.error || 'No se ha podido iniciar el pago.');
-    window.location.href = data.url;
+    // Estadísticas: inicio del pago (Umami sin cookies; Meta solo si se aceptaron las cookies)
+    const ses = sesion(selectedDate, modalidad);
+    const importe = Number(people.value) * (ses ? ses.precio : PRECIO_BASE[modalidad]) / 100;
+    if (window.simoUmami) window.simoUmami('Reservar y pagar', { modalidad, personas: Number(people.value), importe });
+    if (window.simoTrack) window.simoTrack('InitiateCheckout', { value: importe, currency: 'EUR', num_items: Number(people.value), content_ids: [modalidad], content_type: 'product' });
+    setTimeout(() => { window.location.href = data.url; }, 300);
   } catch (err) {
     if (err.message === 'LOCAL') {
       // Copia local: no hay Stripe. Se simula el pago y se pasa a elegir telas, para ver el recorrido.
