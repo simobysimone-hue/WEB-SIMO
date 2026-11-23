@@ -67,10 +67,15 @@ $('pagar').addEventListener('click', async () => {
   const btn = $('pagar'); btn.disabled = true;
   try {
     const res = await fetch('/api/pedido', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ envio: datos, bolsos: leer().map(it => ({ d: it.d, cantidad: it.cantidad, notas: it.notas || '', detalles: it.detalles || [], foto: it.foto || null })) }) });
+      body: JSON.stringify({ envio: datos, bolsos: leer().map(it => ({ d: it.d, cantidad: it.cantidad, notas: it.notas || '', detalles: it.detalles || [], foto: it.foto || null })), ...(window.simoOrigen ? window.simoOrigen() : {}) }) });
     const r = await res.json().catch(() => ({}));
     if (!res.ok || !r.url) throw new Error(r.error || 'ERROR');
-    location.href = r.url;
+    // Estadísticas: inicio del pago (Umami sin cookies; Meta solo si se aceptaron las cookies)
+    const c = leer(), unidades = c.reduce((s, it) => s + it.cantidad, 0);
+    const importe = c.reduce((s, it) => s + precioBolso(it.d) * it.cantidad, 0) + (ENVIOS[zonaEnvio(datos.pais, datos.cp)].precio || 0);
+    if (window.simoUmami) window.simoUmami('Pagar bolsos', { modalidad: 'bolsos', personas: unidades, importe });
+    if (window.simoTrack) window.simoTrack('InitiateCheckout', { value: importe, currency: 'EUR', num_items: unidades, content_ids: ['bolsos'], content_type: 'product' });
+    setTimeout(() => { location.href = r.url; }, 300);
   } catch (err) {
     const m = { LOCAL: 'Estás en la copia local (localhost): aquí no se puede pagar. En la web publicada este botón lleva al pago con Stripe.',
       STRIPE_NO_CONFIGURADO: 'El pago todavía no está activado.', ENVIO_NO_CONFIGURADO: 'Falta fijar el precio del envío a esta zona.',

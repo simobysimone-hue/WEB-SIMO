@@ -37,8 +37,22 @@ p{font-size:15px}
 <div class="btns"><a class="btn" href="bolsos.html">Volver a Bolsos</a><a class="btn btn-line" href="https://www.instagram.com/simo.bysimone/" target="_blank" rel="noopener">Ver Instagram</a></div>
 </div></main>
 <script>
-// El pedido ya está pagado: se vacía el carrito de este navegador.
-if (new URLSearchParams(location.search).get('sesion')) { try { localStorage.removeItem('simo-carrito'); } catch (e) {} }
+// El pedido ya está pagado: se cuenta la compra en las estadísticas y se vacía el carrito de este navegador.
+const idSesion = new URLSearchParams(location.search).get('sesion');
+if (idSesion) {
+  let unidades = 0;
+  try {
+    unidades = (JSON.parse(localStorage.getItem('simo-carrito')) || []).reduce((s, it) => s + (Number(it.cantidad) || 0), 0);
+    localStorage.removeItem('simo-carrito');
+  } catch (e) {}
+  // seguimiento.js se carga con «defer»: se espera a que esté listo.
+  document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/confirmar?id=' + encodeURIComponent(idSesion))
+      .then(r => r.json())
+      .then(d => { if (window.simoCompra) window.simoCompra(idSesion, { ...d, modalidad: 'bolsos', taller: 'Bolsos SIMO', personas: unidades }); })
+      .catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

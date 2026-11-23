@@ -1,4 +1,4 @@
-import { json, stripeGet, modalidadDePago } from './_shared.mjs';
+import { json, cobrosValidos, modalidadDePago } from './_shared.mjs';
 
 export default async (req) => {
   try {
@@ -7,20 +7,9 @@ export default async (req) => {
     const hasta = url.searchParams.get('hasta') || '';
     if (!process.env.STRIPE_SECRET_KEY) return json([]);
 
-    // En live, los cobros son Charges. Buscamos los del SIMO (54,99€ * personas)
-    // y extraemos la fecha del metadata del payment_intent asociado.
-    const r = await stripeGet(`charges?limit=100`);
-    const seen = new Set();
+    // Todos los cobros válidos; los pedidos de bolsos no tienen fecha y se saltan.
     const rows = {};
-    for (const ch of r.data || []) {
-      if (ch.status !== 'succeeded') continue;
-      if (ch.amount_refunded) continue;       // ignorar devoluciones
-      const piId = typeof ch.payment_intent === 'string' ? ch.payment_intent : ch.payment_intent?.id;
-      if (!piId) continue;
-      if (seen.has(piId)) continue;
-      seen.add(piId);
-      // Traemos el PI para leer su metadata (fecha, personas, session_id)
-      const pi = await stripeGet(`payment_intents/${piId}`);
+    for (const { pi } of await cobrosValidos()) {
       const fecha = pi.metadata?.fecha;
       if (!fecha) continue;
       if (desde && fecha < desde) continue;
