@@ -480,7 +480,7 @@ function tachasHTML() {
   return `<div class="tach-cuenta"><span>${cuenta}</span><span class="tach-acc">
       <button type="button" class="chip" data-tachborrar="ultima" ${n ? '' : 'disabled'}>Quitar la última</button>
       <button type="button" class="chip" data-tachborrar="todas" ${n ? '' : 'disabled'}>Quitar todas</button></span></div>
-    <p class="nt tach-ayuda">Con ratón: arrastra la tachuela al bolso. En el móvil: tócala para añadirla y luego muévela con el dedo sobre el bolso. Para quitar una, sácala del bolso o tócala dos veces.</p>`
+    <p class="nt tach-ayuda">Con ratón: arrastra la tachuela al bolso. En el móvil: mantenla pulsada un momento y arrástrala al bolso, o tócala para añadirla y luego muévela con el dedo. Para quitar una, sácala del bolso o tócala dos veces.</p>`
     + TACH_GRUPOS.map(g => `<p class="grupo">${g.grupo}</p><div class="opts tachas">${g.items.map(t =>
       `<button type="button" class="opt tacha-opt" data-tachadd="${t.id}" aria-label="Añadir ${esc(t.nombre)} ${esc(g.grupo.toLowerCase())}">
         <span class="tacha-foto"><img src="${t.img}" alt="" draggable="false" style="width:${Math.round(14 + t.mm * 4.2 / t.ocupa * .9)}px"></span><b>${esc(t.nombre)}</b></button>`).join('')}</div>`).join('');
@@ -508,47 +508,99 @@ let arrastre = null, suprimirClick = false;
 document.addEventListener('pointerdown', e => {
   const nueva = e.target.closest('[data-tachadd]'), puesta = e.target.closest('#lienzo .tacha');
   if (!nueva && !puesta) return;
-  if (nueva && e.pointerType === 'touch') return; // en el móvil se añade con un toque (click)
+  if (e.pointerType === 'touch') return; // con el dedo se gestiona abajo (touchstart)
   e.preventDefault();
-  arrastre = { id: nueva && nueva.dataset.tachadd, i: puesta ? +puesta.dataset.i : null, x0: e.clientX, y0: e.clientY, movido: false, fantasma: null };
+  arrastre = { id: nueva && nueva.dataset.tachadd, i: puesta ? +puesta.dataset.i : null, x0: e.clientX, y0: e.clientY, movido: false, fantasma: null, dy: 0 };
 });
-document.addEventListener('pointermove', e => {
-  if (!arrastre) return;
-  if (!arrastre.movido && Math.hypot(e.clientX - arrastre.x0, e.clientY - arrastre.y0) < 4) return;
-  arrastre.movido = true;
-  if (arrastre.i !== null) { // mover una tachuela ya puesta
-    const p = aSvg(e.clientX, e.clientY); if (!p || !GEO) return;
-    Object.assign(S.tachas[arrastre.i], fraccion(p));
+function pintarFantasma(a, x, y) { // tachuela nueva: se ve flotando al tamaño que tendrá en el bolso
+  if (!a.fantasma) {
+    const tp = TACH[a.id], svg = $('lienzo').querySelector('svg');
+    const escala = svg ? svg.getBoundingClientRect().width / 440 : 1;
+    const lado = Math.max(8, tp.mm / 10 * (GEO ? GEO.pxPorCm : 8.7) / tp.ocupa * escala);
+    const f = document.createElement('img'); f.src = tp.img; f.className = 'tacha-fantasma'; f.style.width = f.style.height = lado + 'px';
+    document.body.append(f); a.fantasma = f;
+  }
+  a.fantasma.style.left = x + 'px'; a.fantasma.style.top = (y + a.dy) + 'px';
+}
+function moverArrastre(x, y) {
+  const a = arrastre;
+  if (!a.movido && Math.hypot(x - a.x0, y - a.y0) < 4) return;
+  a.movido = true;
+  if (a.i !== null) { // mover una tachuela ya puesta
+    const p = aSvg(x, y); if (!p || !GEO) return;
+    Object.assign(S.tachas[a.i], fraccion(p));
     $('lienzo').classList.toggle('fuera', !dentro(p));
     pintarBolso();
     return;
   }
-  if (!arrastre.fantasma) { // tachuela nueva: se ve flotando al tamaño que tendrá en el bolso
-    const tp = TACH[arrastre.id], svg = $('lienzo').querySelector('svg');
-    const escala = svg ? svg.getBoundingClientRect().width / 440 : 1;
-    const lado = Math.max(8, tp.mm / 10 * (GEO ? GEO.pxPorCm : 8.7) / tp.ocupa * escala);
-    const f = document.createElement('img'); f.src = tp.img; f.className = 'tacha-fantasma'; f.style.width = f.style.height = lado + 'px';
-    document.body.append(f); arrastre.fantasma = f;
-  }
-  arrastre.fantasma.style.left = e.clientX + 'px'; arrastre.fantasma.style.top = e.clientY + 'px';
-});
-document.addEventListener('pointerup', e => {
-  if (!arrastre) return;
+  pintarFantasma(a, x, y);
+}
+function soltarArrastre(x, y) {
   const a = arrastre; arrastre = null;
   $('lienzo').classList.remove('fuera');
   if (a.fantasma) a.fantasma.remove();
   if (!a.movido) return; // un toque: lo gestiona el click
   suprimirClick = true; setTimeout(() => { suprimirClick = false; }, 0);
-  const p = aSvg(e.clientX, e.clientY);
+  const p = aSvg(x, y + a.dy);
   if (a.i !== null) { if (!dentro(p)) S.tachas.splice(a.i, 1); cambiar(() => {}); return; }
   if (dentro(p)) cambiar(() => { S.tachas.push({ id: a.id, ...fraccion(p) }); });
+}
+document.addEventListener('pointermove', e => { if (arrastre && !arrastre.tactil) moverArrastre(e.clientX, e.clientY); });
+document.addEventListener('pointerup', e => { if (arrastre && !arrastre.tactil) soltarArrastre(e.clientX, e.clientY); });
+document.addEventListener('pointercancel', () => {
+  if (!arrastre || arrastre.tactil) return;
+  if (arrastre.fantasma) arrastre.fantasma.remove();
+  arrastre = null;
 });
-document.addEventListener('pointercancel', () => { if (arrastre && arrastre.fantasma) arrastre.fantasma.remove(); arrastre = null; });
+
+/* Con el dedo. En el catálogo hay que mantener pulsado un instante: así deslizar sigue moviendo la página.
+   Los eventos se escuchan en el propio elemento tocado porque siguen llegándole aunque el dibujo se repinte. */
+const ESPERA_TACTIL = 160, SOBRE_EL_DEDO = -40;
+document.addEventListener('touchstart', e => {
+  if (arrastre || e.touches.length !== 1) return;
+  const nueva = e.target.closest('[data-tachadd]'), puesta = e.target.closest('#lienzo .tacha');
+  if (!nueva && !puesta) return;
+  const el = e.target, toque = e.changedTouches[0], dedo = toque.identifier;
+  const a = { id: nueva && nueva.dataset.tachadd, i: puesta ? +puesta.dataset.i : null, x0: toque.clientX, y0: toque.clientY,
+    movido: false, fantasma: null, tactil: true, dy: nueva ? SOBRE_EL_DEDO : 0, activo: !!puesta };
+  if (puesta) arrastre = a;
+  const espera = nueva ? setTimeout(() => { a.activo = true; arrastre = a; pintarFantasma(a, a.x0, a.y0); }, ESPERA_TACTIL) : null;
+  const buscar = ev => [...ev.changedTouches].find(t => t.identifier === dedo);
+  const terminar = () => {
+    clearTimeout(espera);
+    el.removeEventListener('touchmove', mover); el.removeEventListener('touchend', soltar); el.removeEventListener('touchcancel', cancelar);
+  };
+  const mover = ev => {
+    const t = buscar(ev); if (!t) return;
+    if (!a.activo) { if (Math.hypot(t.clientX - a.x0, t.clientY - a.y0) > 8) terminar(); return; } // está deslizando la página
+    ev.preventDefault();
+    moverArrastre(t.clientX, t.clientY);
+  };
+  const soltar = ev => {
+    const t = buscar(ev); if (!t) return;
+    terminar();
+    if (!a.activo) return; // toque rápido: lo gestiona el click
+    const eraNueva = a.i === null, movida = a.movido;
+    if (movida || eraNueva) ev.preventDefault();
+    soltarArrastre(t.clientX, t.clientY);
+    if (eraNueva && !movida) anadirEnCentro(a.id); // pulsación lenta sin mover: igual que un toque
+  };
+  const cancelar = () => {
+    terminar();
+    if (a.fantasma) a.fantasma.remove();
+    $('lienzo').classList.remove('fuera');
+    if (arrastre === a) arrastre = null;
+  };
+  el.addEventListener('touchmove', mover, { passive: false });
+  el.addEventListener('touchend', soltar);
+  el.addEventListener('touchcancel', cancelar);
+}, { passive: true });
+document.addEventListener('contextmenu', e => { if (e.target.closest('[data-tachadd], #lienzo .tacha')) e.preventDefault(); });
 $('lienzo').addEventListener('dblclick', e => { const g = e.target.closest('.tacha'); if (g) cambiar(() => { S.tachas.splice(+g.dataset.i, 1); }); });
 // doble toque en el móvil
 let ultimoToque = { i: -1, t: 0 };
 $('lienzo').addEventListener('pointerup', e => {
-  if (e.pointerType !== 'touch') return;
+  if (e.pointerType !== 'touch' || arrastre?.movido) return;
   const g = e.target.closest('.tacha'); if (!g) return;
   const i = +g.dataset.i, ahora = Date.now();
   if (ultimoToque.i === i && ahora - ultimoToque.t < 350) { cambiar(() => { S.tachas.splice(i, 1); }); ultimoToque = { i: -1, t: 0 }; }
