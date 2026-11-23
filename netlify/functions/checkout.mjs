@@ -16,6 +16,11 @@ export default async (req) => {
     const reservadas = await plazasReservadas(fecha, modalidad);
     if (reservadas + personas > ses.capacidad) return json({ error: 'SIN_PLAZAS' }, 409);
 
+    // De qué anuncio viene la reserva (etiquetas utm_* del enlace): se guarda en Stripe.
+    const limpio = v => String(v || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 60);
+    const ORIGEN = {};
+    for (const k of ['origen', 'campana', 'anuncio']) if (limpio(body[k])) ORIGEN[k] = limpio(body[k]);
+
     const origin = new URL(req.url).origin;
     const session = await stripePost('checkout/sessions', {
       mode: 'payment',
@@ -31,12 +36,12 @@ export default async (req) => {
           product_data: { name: `Taller SIMO · ${MODALIDADES[modalidad].nombre} · ${fecha} · ${ses.horario} · ${lugarDe(fecha).replace('Casa de las Alajas · entrada por ', '')}` }
         }
       }],
-      metadata: { fecha, personas: String(personas), nombre: String(nombre).trim(), modalidad, hora: ses.hora },
+      metadata: { fecha, personas: String(personas), nombre: String(nombre).trim(), modalidad, hora: ses.hora, ...ORIGEN },
       payment_intent_data: {
         metadata: {
           fecha, personas: String(personas),
           nombre: String(nombre).trim(),
-          modalidad, hora: ses.hora,
+          modalidad, hora: ses.hora, ...ORIGEN,
           // Marcador único para deduplicar tras reconfirmaciones:
           session_id: 'pending'  // se sobreescribe tras crear la sesión
         }
