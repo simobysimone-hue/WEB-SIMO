@@ -1,6 +1,6 @@
 import { json, stripePost } from './_shared.mjs';
 import { getStore } from '@netlify/blobs';
-import { precioBolso, ENVIOS, zonaEnvio } from '../../precios.mjs';
+import { precioBolso, ENVIOS, zonaEnvio, OFERTA, ofertaActiva, descuentosOferta } from '../../precios.mjs';
 
 /* Carrito de bolsos → pago en Stripe Checkout.
    El precio de cada bolso y el envío se calculan AQUÍ con la tarifa (precios.mjs), nunca con lo que mande el navegador.
@@ -27,15 +27,26 @@ export default async (req) => {
     for (const k of ['origen', 'campana', 'anuncio']) if (limpio(body[k])) ORIGEN[k] = limpio(body[k]);
 
     const line_items = [], metadata = { tipo: 'bolsos', zona, bolsos: String(bolsos.length), ...ORIGEN };
+    // Precio y cantidad de cada diseño (lanza DISENO_INVALIDO si algo no existe).
+    const filas = bolsos.map(b => ({ precio: precioBolso(b.d || {}), cantidad: Math.max(1, Math.min(10, parseInt(b.cantidad, 10) || 1)) }));
+    // Black Friday: lo decide el servidor por la fecha de Madrid. En Stripe de prueba se puede forzar para probarlo.
+    const prueba = body.probarOferta === true && String(process.env.STRIPE_SECRET_KEY).startsWith('sk_test_');
+    const oferta = ofertaActiva() || prueba;
+    const unidades = filas.flatMap((f, i) => Array.from({ length: f.cantidad }, () => ({ i, precio: f.precio })));
+    const desc = oferta ? descuentosOferta(unidades.map(u => u.precio)) : unidades.map(() => 0);
+    const rebajadas = filas.map(() => 0);
+    unidades.forEach((u, k) => { if (desc[k]) rebajadas[u.i]++; });
+    const descuento = Math.round(desc.reduce((s, x) => s + x, 0) * 100) / 100;
+    if (descuento) { metadata.oferta = 'black-friday'; metadata.descuento = descuento.toFixed(2); }
+
     bolsos.forEach((b, i) => {
-      const precio = precioBolso(b.d || {});               // lanza DISENO_INVALIDO si algo no existe
-      const cantidad = Math.max(1, Math.min(10, parseInt(b.cantidad, 10) || 1));
+      const { precio, cantidad } = filas[i];
       const d = b.d, medidas = d.tamano === 'ordenador' ? ` ${corto(d.medW, 5)}×${corto(d.medH, 5)} cm` : '';
-      line_items.push({
-        quantity: cantidad,
-        price_data: { currency: 'eur', unit_amount: Math.round(precio * 100),
-          product_data: { name: `Bolso SIMO · ${d.tamano === 'ordenador' ? 'Funda ordenador/iPad' + medidas : d.tamano.replace('x', ' × ') + ' cm'}` } }
-      });
+      const nombre = `Bolso SIMO · ${d.tamano === 'ordenador' ? 'Funda ordenador/iPad' + medidas : d.tamano.replace('x', ' × ') + ' cm'}`;
+      const enteras = cantidad - rebajadas[i];
+      if (enteras) line_items.push({ quantity: enteras, price_data: { currency: 'eur', unit_amount: Math.round(precio * 100), product_data: { name: nombre } } });
+      if (rebajadas[i]) line_items.push({ quantity: rebajadas[i], price_data: { currency: 'eur', unit_amount: Math.round(precio * 100) - Math.round(precio * 50),
+        product_data: { name: `${nombre} · ${OFERTA.nombre}: ${OFERTA.texto}` } } });
       // Diseño para Simone (Stripe admite 500 caracteres por dato)
       metadata[`b${i + 1}`] = corto([`${cantidad}×`, d.tamano + medidas, `tela:${d.tela}`, d.telaBase && d.telaBase !== 'igual' ? `base:${d.telaBase}` : '',
         d.cinta !== 'ninguna' ? `cinta:${d.cinta}(${d.cintaPos})` : '', d.flecos !== 'ninguno' ? `flecos:${d.flecos}(${d.flecosForma})` : '',
