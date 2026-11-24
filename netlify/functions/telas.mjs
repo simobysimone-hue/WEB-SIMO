@@ -67,5 +67,6 @@ export default async (req) => {
     return json({ error: 'ERROR_INTERNO' }, 500);
   }
 };
-// Límite por persona (IP): 10 envíos por minuto (cada envío escribe en la hoja de Google).
-export const config = { path: '/api/telas', rateLimit: { windowLimit: 10, windowSize: 60, aggregateBy: ['ip', 'domain'] } };
+// Sin límite de peticiones: el plan gratuito de Netlify solo admite 2 (están en admin-reservas y pedido).
+// Aquí protege que solo se acepta un pago ya cobrado.
+export const config = { path: '/api/telas' };

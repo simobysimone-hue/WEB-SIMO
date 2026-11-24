@@ -60,5 +60,5 @@ export default async (req) => {
     return json({ error: 'ERROR_INTERNO' }, 500);
   }
 };
-// Límite por persona (IP): 10 pagos iniciados por minuto, para frenar a robots.
-export const config = { path: '/api/checkout', rateLimit: { windowLimit: 10, windowSize: 60, aggregateBy: ['ip', 'domain'] } };
+// Sin límite de peticiones: el plan gratuito de Netlify solo admite 2 (están en admin-reservas y pedido).
+export const config = { path: '/api/checkout' };
