@@ -1,4 +1,4 @@
-import { precioBolso, ENVIOS, zonaEnvio } from './precios.mjs';
+import { precioBolso, ENVIOS, zonaEnvio, OFERTA, ofertaActiva, descuentosOferta } from './precios.mjs';
 
 /* Carrito de bolsos SIMO: se guarda en este navegador (localStorage) hasta que se paga. */
 const CARRITO = 'simo-carrito';
@@ -7,6 +7,23 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: n % 1 ? 2 : 0 }).format(n);
 const leer = () => { try { return JSON.parse(localStorage.getItem(CARRITO)) || []; } catch { return []; } };
 const guardar = c => { try { localStorage.setItem(CARRITO, JSON.stringify(c)); } catch {} };
+
+/* Black Friday. El descuento de verdad lo calcula el servidor; aquí solo se enseña.
+   Fuera de la web real se puede ver antes de tiempo con ?probar-oferta en la dirección (solo con Stripe de prueba). */
+const PRUEBA_OFERTA = (() => {
+  try {
+    if (location.hostname === 'simoby.netlify.app') return false;
+    if (new URLSearchParams(location.search).has('probar-oferta')) sessionStorage.setItem('simo-probar-oferta', '1');
+    return sessionStorage.getItem('simo-probar-oferta') === '1';
+  } catch { return false; }
+})();
+const OFERTA_ON = ofertaActiva() || PRUEBA_OFERTA;
+function descuentoCarrito(c) {
+  if (!OFERTA_ON) return 0;
+  const precios = [];
+  c.forEach(it => { let p; try { p = precioBolso(it.d); } catch { return; } for (let k = 0; k < it.cantidad; k++) precios.push(p); });
+  return Math.round(descuentosOferta(precios).reduce((s, x) => s + x, 0) * 100) / 100;
+}
 
 // Países: España primero, luego la UE y el resto (nombres en español).
 const PAISES = ['ES', 'PT', 'FR', 'IT', 'DE', 'BE', 'NL', 'LU', 'IE', 'AT', 'DK', 'SE', 'FI', 'PL', 'CZ', 'SK', 'SI', 'HR', 'HU', 'RO', 'BG', 'GR', 'CY', 'MT', 'EE', 'LV', 'LT',
@@ -36,11 +53,13 @@ function pintarTotales() {
   const c = leer();
   const sub = c.reduce((s, it) => { try { return s + precioBolso(it.d) * it.cantidad; } catch { return s; } }, 0);
   const zona = zonaEnvio($('pais').value, $('cp').value), env = ENVIOS[zona];
-  const precioEnvio = env.precio;
-  $('totales').innerHTML = `<li><span>Bolsos (${c.reduce((s, i) => s + i.cantidad, 0)})</span><span>${eur(sub)}</span></li>
+  const precioEnvio = env.precio, unidades = c.reduce((s, i) => s + i.cantidad, 0), desc = descuentoCarrito(c);
+  $('totales').innerHTML = `<li><span>Bolsos (${unidades})</span><span>${eur(sub)}</span></li>
+    ${desc ? `<li class="oferta"><span>${OFERTA.nombre} · ${OFERTA.texto}</span><span>−${eur(desc)}</span></li>` : ''}
+    ${OFERTA_ON && unidades === 1 ? `<li class="oferta-pista"><span>${OFERTA.nombre}: añade otro bolso y el más barato te sale al 50 %.</span><span></span></li>` : ''}
     <li><span>Envío · ${esc(env.nombre)}</span><span>${precioEnvio === null ? 'pendiente' : eur(precioEnvio)}</span></li>
     ${env.aduana ? '<li><span style="font-size:12px;color:#555">En Canarias, Ceuta, Melilla y fuera de la UE pueden cobrarse aduanas o impuestos al recibirlo.</span><span></span></li>' : ''}
-    <li class="total"><span>Total</span><span>${eur(sub + (precioEnvio || 0))}</span></li>`;
+    <li class="total"><span>Total</span><span>${eur(sub - desc + (precioEnvio || 0))}</span></li>`;
   $('pagar').disabled = precioEnvio === null;
   if (precioEnvio === null) { $('aviso').textContent = 'Todavía no se puede pagar a esta zona: falta fijar el precio del envío.'; $('aviso').hidden = false; }
   else $('aviso').hidden = true;
@@ -67,12 +86,12 @@ $('pagar').addEventListener('click', async () => {
   const btn = $('pagar'); btn.disabled = true;
   try {
     const res = await fetch('/api/pedido', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ envio: datos, bolsos: leer().map(it => ({ d: it.d, cantidad: it.cantidad, notas: it.notas || '', detalles: it.detalles || [], foto: it.foto || null })), ...(window.simoOrigen ? window.simoOrigen() : {}) }) });
+      body: JSON.stringify({ envio: datos, bolsos: leer().map(it => ({ d: it.d, cantidad: it.cantidad, notas: it.notas || '', detalles: it.detalles || [], foto: it.foto || null })), probarOferta: PRUEBA_OFERTA, ...(window.simoOrigen ? window.simoOrigen() : {}) }) });
     const r = await res.json().catch(() => ({}));
     if (!res.ok || !r.url) throw new Error(r.error || 'ERROR');
     // Estadísticas: inicio del pago (Umami sin cookies; Meta solo si se aceptaron las cookies)
     const c = leer(), unidades = c.reduce((s, it) => s + it.cantidad, 0);
-    const importe = c.reduce((s, it) => s + precioBolso(it.d) * it.cantidad, 0) + (ENVIOS[zonaEnvio(datos.pais, datos.cp)].precio || 0);
+    const importe = c.reduce((s, it) => s + precioBolso(it.d) * it.cantidad, 0) - descuentoCarrito(c) + (ENVIOS[zonaEnvio(datos.pais, datos.cp)].precio || 0);
     if (window.simoUmami) window.simoUmami('Pagar bolsos', { modalidad: 'bolsos', personas: unidades, importe });
     if (window.simoTrack) window.simoTrack('InitiateCheckout', { value: importe, currency: 'EUR', num_items: unidades, content_ids: ['bolsos'], content_type: 'product' });
     setTimeout(() => { location.href = r.url; }, 300);

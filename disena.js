@@ -1,5 +1,17 @@
 'use strict';
-import { precioBolso } from './precios.mjs';
+import { precioBolso, ofertaActiva } from './precios.mjs';
+
+/* Black Friday: la banda y el aviso solo se ven esos días (o con ?probar-oferta fuera de la web real). */
+(() => {
+  let prueba = false;
+  try {
+    if (location.hostname !== 'simoby.netlify.app') {
+      if (new URLSearchParams(location.search).has('probar-oferta')) sessionStorage.setItem('simo-probar-oferta', '1');
+      prueba = sessionStorage.getItem('simo-probar-oferta') === '1';
+    }
+  } catch {}
+  if (ofertaActiva() || prueba) ['oferta-banda', 'oferta-nota'].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = false; });
+})();
 /* ====== Opciones y precios (de la tarifa de SIMO) ====== */
 const TAMANOS = [
   { id: '30x20', nombre: '30 × 20 cm', precio: 45, w: 30, h: 20, nota: 'El clásico' },

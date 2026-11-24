@@ -45,7 +45,21 @@ export function zonaEnvio(pais, cp) {
   return PAISES_UE.includes(pais) ? 'europa' : 'mundo';
 }
 
-export const precioTachas =n => n ? TACH_BASE + Math.max(0, n - TACH_INCLUIDAS) * TACH_EXTRA : 0;
+/* Black Friday: del 26 al 29 de noviembre de 2026 (hora de Madrid, días incluidos). Solo bolsos, el envío no.
+   Por parejas: se ordenan todas las unidades del carrito de más cara a más barata y la segunda de cada pareja va al 50 %. */
+export const OFERTA = { nombre: 'Black Friday', desde: '2026-11-26', hasta: '2026-11-29', texto: '2ª unidad al 50 %' };
+export const diaMadrid = (f = new Date()) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(f);
+export const ofertaActiva = (f = new Date()) => { const d = diaMadrid(f); return d >= OFERTA.desde && d <= OFERTA.hasta; };
+/* Recibe el precio (€) de cada unidad y devuelve el descuento (€) de cada una, en el mismo orden. */
+export function descuentosOferta(precios) {
+  const desc = precios.map(() => 0);
+  precios.map((p, i) => ({ p, i })).sort((a, b) => b.p - a.p || a.i - b.i)
+    .forEach((u, n) => { if (n % 2 === 1) desc[u.i] = Math.round(u.p * 50) / 100; });
+  return desc;
+}
+
+export const precioTachas =n =>n ? TACH_BASE + Math.max(0, n - TACH_INCLUIDAS) * TACH_EXTRA : 0;
 const cintaExtra = id => id === 'ninguna' ? 0 : id.startsWith('tela-') ? (id !== 'tela-vaca' && id.slice(5) in TELA_EXTRA ? CINTA_TELA : null) : (CINTA_EXTRA[id] ?? null);
 
 /* Comprueba un diseño y devuelve su precio en euros (o lanza un error si algo no existe). */
