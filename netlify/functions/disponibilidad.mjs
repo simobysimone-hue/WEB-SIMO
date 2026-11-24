@@ -26,5 +26,5 @@ export default async (req) => {
     return json([], 500);
   }
 };
-// Límite por persona (IP): 60 consultas por minuto (cada una lee Stripe).
-export const config = { path: '/api/disponibilidad', rateLimit: { windowLimit: 60, windowSize: 60, aggregateBy: ['ip', 'domain'] } };
+// Sin límite de peticiones: el plan gratuito de Netlify solo admite 2 (están en admin-reservas y pedido).
+export const config = { path: '/api/disponibilidad' };

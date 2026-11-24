@@ -34,5 +34,5 @@ export default async (req) => {
     return json({ estado: 'desconocido' });
   }
 };
-// Límite por persona (IP): 30 consultas por minuto.
-export const config = { path: '/api/confirmar', rateLimit: { windowLimit: 30, windowSize: 60, aggregateBy: ['ip', 'domain'] } };
+// Sin límite de peticiones: el plan gratuito de Netlify solo admite 2 (están en admin-reservas y pedido).
+export const config = { path: '/api/confirmar' };
