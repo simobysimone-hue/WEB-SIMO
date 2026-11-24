@@ -60,4 +60,5 @@ export default async (req) => {
     return json({ error: 'ERROR_INTERNO' }, 500);
   }
 };
-export const config = { path: '/api/checkout' };
+// Límite por persona (IP): 10 pagos iniciados por minuto, para frenar a robots.
+export const config = { path: '/api/checkout', rateLimit: { windowLimit: 10, windowSize: 60, aggregateBy: ['ip', 'domain'] } };

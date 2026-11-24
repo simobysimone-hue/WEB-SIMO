@@ -73,4 +73,5 @@ export default async (req) => {
     return json({ error: 'ERROR_INTERNO' }, 500);
   }
 };
-export const config = { path: '/api/pedido' };
+// Límite por persona (IP): 10 pedidos iniciados por minuto, para frenar a robots.
+export const config = { path: '/api/pedido', rateLimit: { windowLimit: 10, windowSize: 60, aggregateBy: ['ip', 'domain'] } };
