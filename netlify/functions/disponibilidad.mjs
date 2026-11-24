@@ -26,4 +26,5 @@ export default async (req) => {
     return json([], 500);
   }
 };
-export const config = { path: '/api/disponibilidad' };
+// Límite por persona (IP): 60 consultas por minuto (cada una lee Stripe).
+export const config = { path: '/api/disponibilidad', rateLimit: { windowLimit: 60, windowSize: 60, aggregateBy: ['ip', 'domain'] } };

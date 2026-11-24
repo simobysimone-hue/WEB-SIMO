@@ -67,4 +67,5 @@ export default async (req) => {
     return json({ error: 'ERROR_INTERNO' }, 500);
   }
 };
-export const config = { path: '/api/telas' };
+// Límite por persona (IP): 10 envíos por minuto (cada envío escribe en la hoja de Google).
+export const config = { path: '/api/telas', rateLimit: { windowLimit: 10, windowSize: 60, aggregateBy: ['ip', 'domain'] } };

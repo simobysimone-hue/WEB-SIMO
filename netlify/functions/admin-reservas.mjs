@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { cobrosValidos, json, modalidadDePago, MODALIDADES } from './_shared.mjs';
 
 export default async (req) => {
@@ -8,7 +9,12 @@ export default async (req) => {
     // La contraseña solo vive en Netlify (variable ADMIN_PASSWORD), nunca en el código.
     const admin = process.env.ADMIN_PASSWORD || '';
     if (!admin) return json({ error: 'ADMIN_NO_CONFIGURADO' }, 503);
-    if (pass !== admin) return json({ error: 'NO_AUTORIZADO' }, 401);
+    // Comparación que tarda lo mismo acierte o no, y una pausa al fallar, para frenar a quien pruebe contraseñas.
+    const huella = v => crypto.createHash('sha256').update(String(v)).digest();
+    if (!crypto.timingSafeEqual(huella(pass), huella(admin))) {
+      await new Promise(r => setTimeout(r, 1000));
+      return json({ error: 'NO_AUTORIZADO' }, 401);
+    }
 
     const data = [];
     for (const { ch, pi } of await cobrosValidos()) {
@@ -41,7 +47,8 @@ export default async (req) => {
     });
   } catch (e) {
     console.error('admin:', e.message);
-    return json({ error: 'ERROR_INTERNO', detalle: e.message }, 500);
+    return json({ error: 'ERROR_INTERNO' }, 500);
   }
 };
-export const config = { path: '/api/admin/reservas' };
+// Límite por persona (IP): 10 intentos por minuto.
+export const config = { path: '/api/admin/reservas', rateLimit: { windowLimit: 10, windowSize: 60, aggregateBy: ['ip', 'domain'] } };
