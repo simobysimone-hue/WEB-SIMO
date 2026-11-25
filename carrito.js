@@ -1,4 +1,4 @@
-import { precioBolso, ENVIOS, zonaEnvio, OFERTA, ofertaActiva, descuentosOferta } from './precios.mjs';
+import { precioBolso, envioPedido, PAISES_ENVIO, OFERTA, ofertaActiva, descuentosOferta } from './precios.mjs';
 
 /* Carrito de bolsos SIMO: se guarda en este navegador (localStorage) hasta que se paga. */
 const CARRITO = 'simo-carrito';
@@ -25,10 +25,9 @@ function descuentoCarrito(c) {
   return Math.round(descuentosOferta(precios).reduce((s, x) => s + x, 0) * 100) / 100;
 }
 
-// Países: España primero, luego la UE y el resto (nombres en español).
-const PAISES = ['ES', 'PT', 'FR', 'IT', 'DE', 'BE', 'NL', 'LU', 'IE', 'AT', 'DK', 'SE', 'FI', 'PL', 'CZ', 'SK', 'SI', 'HR', 'HU', 'RO', 'BG', 'GR', 'CY', 'MT', 'EE', 'LV', 'LT',
-  'GB', 'CH', 'NO', 'IS', 'AD', 'MC', 'US', 'CA', 'MX', 'AR', 'CL', 'CO', 'PE', 'UY', 'BR', 'AU', 'NZ', 'JP', 'KR', 'SG', 'AE', 'IL', 'MA', 'ZA'];
+// Países a los que se envía: España primero y el resto por orden alfabético (nombres en español).
 const nombrePais = new Intl.DisplayNames(['es'], { type: 'region' });
+const PAISES = ['ES', ...PAISES_ENVIO.filter(c => c !== 'ES').sort((a, b) => nombrePais.of(a).localeCompare(nombrePais.of(b), 'es'))];
 $('pais').innerHTML = PAISES.map(c => `<option value="${c}">${nombrePais.of(c)}</option>`).join('');
 
 function pintar() {
@@ -52,16 +51,21 @@ function pintar() {
 function pintarTotales() {
   const c = leer();
   const sub = c.reduce((s, it) => { try { return s + precioBolso(it.d) * it.cantidad; } catch { return s; } }, 0);
-  const zona = zonaEnvio($('pais').value, $('cp').value), env = ENVIOS[zona];
-  const precioEnvio = env.precio, unidades = c.reduce((s, i) => s + i.cantidad, 0), desc = descuentoCarrito(c);
+  const unidades = c.reduce((s, i) => s + i.cantidad, 0), desc = descuentoCarrito(c);
+  const env = envioPedido($('pais').value, $('cp').value, unidades), precioEnvio = env.precio;
   $('totales').innerHTML = `<li><span>Bolsos (${unidades})</span><span>${eur(sub)}</span></li>
     ${desc ? `<li class="oferta"><span>${OFERTA.nombre} · ${OFERTA.texto}</span><span>−${eur(desc)}</span></li>` : ''}
     ${OFERTA_ON && unidades === 1 ? `<li class="oferta-pista"><span>${OFERTA.nombre}: añade otro bolso y el más barato te sale al 50 %.</span><span></span></li>` : ''}
-    <li><span>Envío · ${esc(env.nombre)}</span><span>${precioEnvio === null ? 'pendiente' : eur(precioEnvio)}</span></li>
+    <li><span>Envío · ${esc(env.nombre)}</span><span>${precioEnvio === null ? 'no disponible' : eur(precioEnvio)}</span></li>
     ${env.aduana ? '<li><span style="font-size:12px;color:#555">En Canarias, Ceuta, Melilla y fuera de la UE pueden cobrarse aduanas o impuestos al recibirlo.</span><span></span></li>' : ''}
     <li class="total"><span>Total</span><span>${eur(sub - desc + (precioEnvio || 0))}</span></li>`;
   $('pagar').disabled = precioEnvio === null;
-  if (precioEnvio === null) { $('aviso').textContent = 'Todavía no se puede pagar a esta zona: falta fijar el precio del envío.'; $('aviso').hidden = false; }
+  if (precioEnvio === null) {
+    $('aviso').textContent = env.zona === 'mundo'
+      ? 'Todavía no enviamos a esta dirección (por ejemplo, Madeira o Azores). Escríbenos a simobysimone@gmail.com y lo vemos.'
+      : 'Para un pedido tan grande, escríbenos a simobysimone@gmail.com y te calculamos el envío.';
+    $('aviso').hidden = false;
+  }
   else $('aviso').hidden = true;
 }
 
@@ -91,7 +95,7 @@ $('pagar').addEventListener('click', async () => {
     if (!res.ok || !r.url) throw new Error(r.error || 'ERROR');
     // Estadísticas: inicio del pago (Umami sin cookies; Meta solo si se aceptaron las cookies)
     const c = leer(), unidades = c.reduce((s, it) => s + it.cantidad, 0);
-    const importe = c.reduce((s, it) => s + precioBolso(it.d) * it.cantidad, 0) - descuentoCarrito(c) + (ENVIOS[zonaEnvio(datos.pais, datos.cp)].precio || 0);
+    const importe = c.reduce((s, it) => s + precioBolso(it.d) * it.cantidad, 0) - descuentoCarrito(c) + (envioPedido(datos.pais, datos.cp, unidades).precio || 0);
     if (window.simoUmami) window.simoUmami('Pagar bolsos', { modalidad: 'bolsos', personas: unidades, importe });
     if (window.simoTrack) window.simoTrack('InitiateCheckout', { value: importe, currency: 'EUR', num_items: unidades, content_ids: ['bolsos'], content_type: 'product' });
     setTimeout(() => { location.href = r.url; }, 300);

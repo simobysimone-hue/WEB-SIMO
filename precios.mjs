@@ -21,18 +21,47 @@ export const TACH_INCLUIDAS = 15, TACH_BASE = 5, TACH_EXTRA = .15;
 export const DOS_TELAS = 2, ENGANCHES = 5, CREMALLERA = 10;
 export const MED_MIN = 15, MED_MAX = 60;
 
-/* Envíos: tarifa fija por zona (euros por pedido, IVA incluido). Basada en SendSeiPro · Correos Express Paq 24
+/* ====== Envíos ======
+   España: precio fijo por pedido, IVA incluido. Basado en SendSeiPro · Correos Express Paq 24
    (paquete < 1 kg) + 21 % IVA + combustible + recogida, con un pequeño margen.
-   null = todavía sin precio: no se puede pagar a esa zona (falta la tarifa internacional de SendSeiPro). */
+   Fuera de España: tarifa MRW eCommerce (oferta del 29/10/2026, válida hasta el 31/12/2026), nivel START UP,
+   precios SIN IVA por tramo de peso. Lo que paga la clienta = precio MRW + 21 % IVA + 5 % de combustible,
+   redondeado al euro de arriba. Si MRW cambia un precio, se cambia SOLO en MRW_TARIFA.
+   Tramos de peso:          2 kg   5 kg   10 kg   15 kg   20 kg   25 kg */
+export const MRW_TARIFA = {
+  nacional: [6.90, 9.23, 11.62, 14.01, 16.41, 18.79],      // Portugal peninsular, Andorra y Gibraltar (tarifa nacional, entrega en domicilio)
+  zona1: [30.06, 50.54, 58.73, 68.31, 77.87, 86.06],
+  zona2: [42.35, 80.59, 88.80, 98.37, 107.92, 116.11],
+  zona3: [54.65, 86.06, 112.02, 125.67, 136.60, 147.54],
+  zona4: [73.77, 102.46, 142.06, 166.67, 188.52, 204.91]
+};
+export const MRW_IVA = 0.21, MRW_COMBUSTIBLE = 0.05;
+/* Unos 500 g por bolso empaquetado: 1-3 bolsos → tramo de 2 kg, 4-9 → 5 kg, 10-19 → 10 kg… (más de 49: hay que escribir). */
+export const tramoPeso = unidades => [3, 9, 19, 29, 39, 49].findIndex(max => unidades <= max);
+
 export const ENVIOS = {
   peninsula: { nombre: 'España peninsular', precio: 5 },
   baleares: { nombre: 'Islas Baleares', precio: 8 },
-  canarias: { nombre: 'Canarias', precio: 10, aduana: true },
-  ceutamelilla: { nombre: 'Ceuta y Melilla', precio: 22, aduana: true },
-  europa: { nombre: 'Unión Europea', precio: null },
-  mundo: { nombre: 'Resto del mundo', precio: null, aduana: true }
+  canarias: { nombre: 'Canarias', precio: 10 },
+  ceutamelilla: { nombre: 'Ceuta y Melilla', precio: 22 },
+  portugal: { nombre: 'Portugal peninsular', mrw: 'nacional' },
+  andorra: { nombre: 'Andorra y Gibraltar', mrw: 'nacional' },
+  zona1: { nombre: 'Europa (zona 1)', mrw: 'zona1' },
+  zona2: { nombre: 'Europa (zona 2)', mrw: 'zona2' },
+  zona3: { nombre: 'Estados Unidos y Canadá', mrw: 'zona3' },
+  zona4: { nombre: 'Latinoamérica', mrw: 'zona4' },
+  mundo: { nombre: 'Esta dirección', precio: null }
 };
 export const PAISES_UE = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'];
+export const ZONAS_MRW = {
+  zona1: ['DE', 'AT', 'BE', 'DK', 'FR', 'NL', 'IT', 'LU', 'PL', 'GB', 'CZ', 'CH'],
+  zona2: ['BG', 'SI', 'EE', 'FI', 'GR', 'HU', 'IE', 'LV', 'LT', 'NO', 'SK', 'RO', 'SE'],
+  zona3: ['US', 'CA'],
+  zona4: ['AR', 'BO', 'BR', 'CL', 'CO', 'CR', 'EC', 'SV', 'GT', 'HN', 'MX', 'NI', 'PA', 'PY', 'PE', 'PR', 'DO', 'UY', 'VE']
+};
+/* Países a los que se puede enviar (para el desplegable del carrito). */
+export const PAISES_ENVIO = ['ES', 'PT', 'AD', 'GI', ...Object.values(ZONAS_MRW).flat()];
+
 /* Zona de envío según país (código ISO) y código postal. */
 export function zonaEnvio(pais, cp) {
   pais = String(pais || '').toUpperCase(); const c = String(cp || '').trim();
@@ -42,7 +71,23 @@ export function zonaEnvio(pais, cp) {
     if (/^(51|52)/.test(c)) return 'ceutamelilla';
     return 'peninsula';
   }
-  return PAISES_UE.includes(pais) ? 'europa' : 'mundo';
+  if (pais === 'PT') return /^9/.test(c) ? 'mundo' : 'portugal';   // Madeira y Azores (CP 9xxx) no entran en la tarifa
+  if (pais === 'AD' || pais === 'GI') return 'andorra';
+  for (const [zona, paises] of Object.entries(ZONAS_MRW)) if (paises.includes(pais)) return zona;
+  return 'mundo';
+}
+/* Aduanas: Canarias, Ceuta, Melilla y todo lo que está fuera de la UE. */
+export const conAduana = (pais, zona) => ['canarias', 'ceutamelilla'].includes(zona) || (String(pais).toUpperCase() !== 'ES' && !PAISES_UE.includes(String(pais).toUpperCase()));
+
+/* Envío de un pedido: { zona, nombre, precio (euros, null = no se envía), aduana }. */
+export function envioPedido(pais, cp, unidades) {
+  const zona = zonaEnvio(pais, cp), z = ENVIOS[zona];
+  let precio = z.precio ?? null;
+  if (z.mrw) {
+    const t = tramoPeso(Math.max(1, unidades || 1));
+    precio = t < 0 ? null : Math.ceil(Math.round(MRW_TARIFA[z.mrw][t] * (1 + MRW_IVA) * (1 + MRW_COMBUSTIBLE) * 100) / 100);
+  }
+  return { zona, nombre: z.nombre, precio, aduana: conAduana(pais, zona) };
 }
 
 /* Black Friday: del 26 al 29 de noviembre de 2026 (hora de Madrid, días incluidos). Solo bolsos, el envío no.
