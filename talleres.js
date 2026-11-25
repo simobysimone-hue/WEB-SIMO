@@ -15,6 +15,23 @@ const MODALIDADES = {
   customiza: { nombre: 'Customiza tu SIMO', leyenda: 'Customiza tu SIMO: viernes de 17:00 a 19:30 y sábados de 11:30 a 14:00 · grupos de 20' }
 };
 const PRECIO_BASE = { crea: 7499, customiza: 5499 };
+
+/* Black Friday: 20 % en las reservas pagadas del 26 al 29 de noviembre (hora de Madrid).
+   Debe coincidir con OFERTA y OFERTA_TALLERES de precios.mjs. El precio de verdad lo calcula el servidor.
+   Fuera de la web real se puede ver antes de tiempo con ?probar-oferta (solo con Stripe de prueba). */
+const BF = { desde: '2026-11-26', hasta: '2026-11-29', descuento: 0.20 };
+const BF_PRUEBA = (() => {
+  try {
+    if (location.hostname === 'simoby.netlify.app') return false;
+    if (new URLSearchParams(location.search).has('probar-oferta')) sessionStorage.setItem('simo-probar-oferta', '1');
+    return sessionStorage.getItem('simo-probar-oferta') === '1';
+  } catch (e) { return false; }
+})();
+const BF_ON = (() => {
+  const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  return (hoy >= BF.desde && hoy <= BF.hasta) || BF_PRUEBA;
+})();
+const precioFinal = centimos => BF_ON ? Math.round(centimos * (1 - BF.descuento)) : centimos;
 const CAPACIDAD_BASE = { crea: 8, customiza: 20 };
 
 function sesionesDe(fecha) {
@@ -136,10 +153,12 @@ function fillPeople(max) {
 }
 function updateTotal() {
   const ses = selectedDate && sesion(selectedDate, modalidad);
-  const precio = ses ? ses.precio : PRECIO_BASE[modalidad];
-  const total = money.format(Number(people.value || 1) * precio / 100);
+  const base = ses ? ses.precio : PRECIO_BASE[modalidad], n = Number(people.value || 1);
+  const total = money.format(n * precioFinal(base) / 100);
   $('total').textContent = total;
   $('pay-total').textContent = total;
+  const antes = $('total-antes');
+  if (antes) { antes.hidden = !BF_ON; antes.textContent = money.format(n * base / 100); }
 }
 
 function setModalidad(mod) {
@@ -189,13 +208,13 @@ $('booking-form').addEventListener('submit', async event => {
     const res = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fecha: selectedDate, modalidad, personas: Number(people.value), nombre, email, ...(window.simoOrigen ? window.simoOrigen() : {}) })
+      body: JSON.stringify({ fecha: selectedDate, modalidad, personas: Number(people.value), nombre, email, probarOferta: BF_PRUEBA, ...(window.simoOrigen ? window.simoOrigen() : {}) })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.url) throw new Error(data.error || 'No se ha podido iniciar el pago.');
     // Estadísticas: inicio del pago (Umami sin cookies; Meta solo si se aceptaron las cookies)
     const ses = sesion(selectedDate, modalidad);
-    const importe = Number(people.value) * (ses ? ses.precio : PRECIO_BASE[modalidad]) / 100;
+    const importe = Number(people.value) * precioFinal(ses ? ses.precio : PRECIO_BASE[modalidad]) / 100;
     if (window.simoUmami) window.simoUmami('Reservar y pagar', { modalidad, personas: Number(people.value), importe });
     if (window.simoTrack) window.simoTrack('InitiateCheckout', { value: importe, currency: 'EUR', num_items: Number(people.value), content_ids: [modalidad], content_type: 'product' });
     setTimeout(() => { window.location.href = data.url; }, 300);
@@ -214,5 +233,6 @@ $('booking-form').addEventListener('submit', async event => {
   }
 });
 
+if (BF_ON) { const banda = $('oferta-banda'); if (banda) banda.hidden = false; }
 setModalidad(new URLSearchParams(location.search).get('taller') === 'customiza' ? 'customiza' : 'crea');
 fetchAvailability(iso(nowY, nowM, 1), MAX_DATE);

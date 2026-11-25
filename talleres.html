@@ -101,6 +101,11 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 .total{margin:0;display:flex;align-items:baseline;gap:10px}
 .total span{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;color:#555}
 .total strong{font-family:Impact,"Arial Black",sans-serif;font-weight:400;font-size:34px;line-height:1}
+.total s{font-size:16px;color:#777}
+[hidden]{display:none!important}
+.oferta-banda{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;margin:-18px -28px 18px;padding:10px 28px;background:#5E1727;color:#F6F5F3;font-size:14px;text-align:center}
+.oferta-banda b{font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:13px}
+@media (max-width:480px){.oferta-banda{margin:-18px -16px 18px;padding:10px 16px;font-size:13px}}
 .btn.pay{width:100%;padding:18px;font-size:14px;background:#5E1727;border-color:#5E1727;cursor:pointer}
 .btn.pay:hover{background:#0B0B0C;border-color:#0B0B0C}
 .btn.pay:disabled{opacity:.6;cursor:wait}
@@ -133,6 +138,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 <nav><a href="bolsos.html">Bolsos</a><a href="talleres.html" aria-current="page">Talleres</a><a href="index.html#contacto">Contacto</a></nav>
 <a href="index.html" class="win-x" aria-label="Cerrar Talleres" title="Volver a la web">×</a>
 </div>
+<div class="oferta-banda" id="oferta-banda" hidden><b>Black Friday · del 26 al 29 de noviembre</b><span>20 % de descuento en todos los talleres que reserves estos días, para cualquier fecha.</span></div>
 
 <div class="hero">
 <img class="hero-bg" src="img/taller-3.webp" alt="">
@@ -239,7 +245,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 <select id="people" name="people" aria-label="Número de personas"><option value="1">1 persona</option></select>
 <button type="button" id="people-plus" aria-label="Añadir una persona">+</button>
 </div>
-<p class="total"><span>Total</span><strong id="total">74,99 €</strong></p>
+<p class="total"><span>Total</span><s id="total-antes" hidden></s><strong id="total">74,99 €</strong></p>
 </div>
 <p class="note" id="spots-note" hidden></p>
 </fieldset>
@@ -253,7 +259,7 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 </fieldset>
 
 <button type="submit" class="btn pay" id="pay-button"><span>Reservar y pagar ·</span> <span id="pay-total">74,99 €</span></button>
-<p class="note">Pago seguro con tarjeta o Bizum. Recibiréis la confirmación por email. Al reservar aceptas la política de cancelación (abajo, en «¿Y si necesito cancelar?»).</p>
+<p class="note">Pago seguro con Stripe (tarjeta y otros métodos). Recibiréis la confirmación por email. Al reservar aceptas la política de cancelación (abajo, en «¿Y si necesito cancelar?»).</p>
 <p class="toast" id="toast" role="status" hidden></p>
 </form>
 </section>
@@ -286,6 +292,6 @@ h2,h3{font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing
 </footer>
 
 </div>
-<script src="talleres.js"></script>
+<script src="talleres.js?v=20261125bf"></script>
 </body>
 </html>
