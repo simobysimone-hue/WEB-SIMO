@@ -96,6 +96,9 @@ export const OFERTA = { nombre: 'Black Friday', desde: '2026-11-26', hasta: '202
 export const diaMadrid = (f = new Date()) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(f);
 export const ofertaActiva = (f = new Date()) => { const d = diaMadrid(f); return d >= OFERTA.desde && d <= OFERTA.hasta; };
+/* Talleres en Black Friday: 20 % en las reservas que se pagan esos días (para cualquier fecha de taller). Precio en céntimos. */
+export const OFERTA_TALLERES = { descuento: 0.20, texto: '20 % en talleres' };
+export const precioTallerOferta = centimos => Math.round(centimos * (1 - OFERTA_TALLERES.descuento));
 /* Recibe el precio (€) de cada unidad y devuelve el descuento (€) de cada una, en el mismo orden. */
 export function descuentosOferta(precios) {
   const desc = precios.map(() => 0);

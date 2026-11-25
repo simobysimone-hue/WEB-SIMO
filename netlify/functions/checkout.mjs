@@ -1,4 +1,5 @@
 import { json, isValidWorkshopDate, stripePost, plazasReservadas, sesion, lugarDe, MODALIDADES } from './_shared.mjs';
+import { ofertaActiva, precioTallerOferta } from '../../precios.mjs';
 
 export default async (req) => {
   try {
@@ -21,6 +22,12 @@ export default async (req) => {
     const ORIGEN = {};
     for (const k of ['origen', 'campana', 'anuncio']) if (limpio(body[k])) ORIGEN[k] = limpio(body[k]);
 
+    // Black Friday (26-29 nov, hora de Madrid): 20 % en talleres. Lo decide el servidor; en Stripe de prueba se puede forzar.
+    const prueba = body.probarOferta === true && String(process.env.STRIPE_SECRET_KEY).startsWith('sk_test_');
+    const oferta = ofertaActiva() || prueba;
+    const precioUnidad = oferta ? precioTallerOferta(ses.precio) : ses.precio;
+    if (oferta) ORIGEN.oferta = 'black-friday';
+
     const origin = new URL(req.url).origin;
     const session = await stripePost('checkout/sessions', {
       mode: 'payment',
@@ -32,8 +39,8 @@ export default async (req) => {
         quantity: personas,
         price_data: {
           currency: 'eur',
-          unit_amount: ses.precio,
-          product_data: { name: `Taller SIMO · ${MODALIDADES[modalidad].nombre} · ${fecha} · ${ses.horario} · ${lugarDe(fecha).replace('Casa de las Alajas · entrada por ', '')}` }
+          unit_amount: precioUnidad,
+          product_data: { name: `Taller SIMO · ${MODALIDADES[modalidad].nombre} · ${fecha} · ${ses.horario} · ${lugarDe(fecha).replace('Casa de las Alajas · entrada por ', '')}${oferta ? ' · Black Friday −20 %' : ''}` }
         }
       }],
       metadata: { fecha, personas: String(personas), nombre: String(nombre).trim(), modalidad, hora: ses.hora, ...ORIGEN },
