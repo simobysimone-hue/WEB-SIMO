@@ -1,6 +1,6 @@
 import { json, stripePost } from './_shared.mjs';
 import { getStore } from '@netlify/blobs';
-import { precioBolso, ENVIOS, zonaEnvio, OFERTA, ofertaActiva, descuentosOferta } from '../../precios.mjs';
+import { precioBolso, envioPedido, OFERTA, ofertaActiva, descuentosOferta } from '../../precios.mjs';
 
 /* Carrito de bolsos → pago en Stripe Checkout.
    El precio de cada bolso y el envío se calculan AQUÍ con la tarifa (precios.mjs), nunca con lo que mande el navegador.
@@ -18,7 +18,9 @@ export default async (req) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.email)) return json({ error: 'EMAIL_INVALIDO' }, 400);
     if (!e.acepto) return json({ error: 'FALTA_ACEPTAR' }, 400);
 
-    const zona = zonaEnvio(e.pais, e.cp), envio = ENVIOS[zona];
+    // Envío: depende del país, del código postal y (fuera de España) de cuántos bolsos van en el paquete.
+    const totalUnidades = bolsos.reduce((s, b) => s + Math.max(1, Math.min(10, parseInt(b.cantidad, 10) || 1)), 0);
+    const envio = envioPedido(e.pais, e.cp, totalUnidades), zona = envio.zona;
     if (envio.precio == null) return json({ error: 'ENVIO_NO_CONFIGURADO' }, 400);
 
     // De qué anuncio viene el pedido (etiquetas utm_* del enlace): se guarda en Stripe, igual que en los talleres.
