@@ -174,7 +174,7 @@ export async function enviarPedidoBolsos({ session, piId }) {
     <p style="color:#555;margin-top:14px">Email: ${escHtml(email)}<br>Pago Stripe: ${escHtml(piId || session.id)}</p></div>`;
   await mailer.sendMail({ from: `"SIMO web" <${MAIL_USER}>`, to: MAIL_USER, replyTo: email || undefined, subject: `Nuevo pedido de bolsos · ${sh.name || email}`, text: texto, html, attachments });
   if (email) await mailer.sendMail({ from: `"SIMO" <${MAIL_USER}>`, to: email, subject: 'Tu pedido SIMO está confirmado',
-    text: `Hola ${sh.name || ''}:\n\nHemos recibido tu pedido y el pago (${total} EUR). Cada bolso se hace a mano: tardaremos de 2 a 3 semanas y te avisaremos cuando salga.\n\nEnvío a:\n${direccion}\n\nGracias por elegir SIMO.\nSIMO · Madrid` });
+    text: `Hola ${sh.name || ''}:\n\nHemos recibido tu pedido y el pago (${total} EUR). Cada bolso se hace a mano: tardaremos de 3 a 7 días y te avisaremos cuando salga.\n\nEnvío a:\n${direccion}\n\nGracias por elegir SIMO.\nSIMO · Madrid` });
   if (piId) { try { await stripePost(`payment_intents/${piId}`, { metadata: { emailed: '1' } }); } catch {} }
   return true;
 }
