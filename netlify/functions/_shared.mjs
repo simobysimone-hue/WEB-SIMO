@@ -13,7 +13,7 @@ export const MAX_DATE = '2026-12-31';
 export const CAMBIO = '2026-11-20';
 export const SIN_TALLER = ['2026-12-25'];
 /* Sesiones cerradas a mano para nuevas reservas (salen como completas). */
-export const CERRADAS = ['2026-10-31', '2026-11-13', '2026-11-14', '2026-11-20', '2026-11-21'];
+export const CERRADAS = ['2026-10-31', '2026-11-13', '2026-11-14', '2026-11-20', '2026-11-21', '2026-11-28'];
 export const MODALIDADES = {
   crea: { nombre: 'Crea tu SIMO' },
   customiza: { nombre: 'Customiza tu SIMO' }

@@ -9,7 +9,7 @@ const MIN_DATE = '2026-10-23';
 const MAX_DATE = '2026-12-31';
 const CAMBIO = '2026-11-20';
 const SIN_TALLER = ['2026-12-25'];
-const CERRADAS = ['2026-10-31', '2026-11-13', '2026-11-14', '2026-11-20', '2026-11-21']; // cerradas a mano: salen como completas
+const CERRADAS = ['2026-10-31', '2026-11-13', '2026-11-14', '2026-11-20', '2026-11-21', '2026-11-28']; // cerradas a mano: salen como completas
 const MODALIDADES = {
   crea: { nombre: 'Crea tu SIMO', leyenda: 'Crea tu SIMO: sábados de 16:00 a 20:00 · grupos de 8' },
   customiza: { nombre: 'Customiza tu SIMO', leyenda: 'Customiza tu SIMO: viernes de 17:00 a 19:30 y sábados de 11:30 a 14:00 · grupos de 20' }
